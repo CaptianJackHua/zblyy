@@ -1,29 +1,17 @@
-import { defineConfig } from 'vite'
-import uni from '@dcloudio/vite-plugin-uni'
-import path from 'path'
+import { defineConfig } from "vite";
+import uni from "@dcloudio/vite-plugin-uni";
 
-// GitHub Pages 部署：资源前缀
-// 本地 dev 用根路径，build 时用 /zblyy/
-const isGhPages = process.env.GH_PAGES === '1'
-
-export default defineConfig({
+// https://vitejs.dev/config/
+// 构建产物部署在 GitHub Pages 的项目站点（/zblyy/）下，需要设置 base；
+// 本地开发仍使用根路径，避免影响 dev server。
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/zblyy/" : "/",
   plugins: [uni()],
-  base: isGhPages ? '/zblyy/' : '/',
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
-  },
   css: {
     preprocessorOptions: {
       scss: {
-        api: 'modern-compiler',
-        silenceDeprecations: ['legacy-js-api']
+        additionalData: `@import "@/styles/variables.scss";`
       }
     }
-  },
-  server: {
-    port: 5173,
-    host: '0.0.0.0'
   }
-})
+}));

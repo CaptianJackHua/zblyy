@@ -1,16 +1,280 @@
 {
-  "easycom": {
-    "autoscan": true,
-    "custom": {
-      "^wd-(.*)": "@wot-ui/ui/components/wd-$1/wd-$1.vue"
-    }
-  },
   "pages": [
     {
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "APP功能配置",
+        "navigationBarTitleText": "中兵康养"
+      }
+    },
+    {
+      "path": "pages/service/index",
+      "style": {
+        "navigationBarTitleText": "服务",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/shop/index",
+      "style": {
+        "navigationBarTitleText": "商城",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/message/index",
+      "style": {
+        "navigationBarTitleText": "消息",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/smart-health/index",
+      "style": {
+        "navigationBarTitleText": "智慧健康",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-service/index",
+      "style": {
+        "navigationBarTitleText": "健康服务",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-service/appointment",
+      "style": {
+        "navigationBarTitleText": "服务预约",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-preserve/index",
+      "style": {
+        "navigationBarTitleText": "养生体验",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-travel/index",
+      "style": {
+        "navigationBarTitleText": "康养旅居",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/xiaoyi/chat",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "中兵小医",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-archive/index",
+      "style": {
+        "navigationBarTitleText": "健康档案",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-archive/basic-info",
+      "style": {
+        "navigationBarTitleText": "基本信息",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-assessment/index",
+      "style": {
+        "navigationBarTitleText": "健康评估",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/device-manage/index",
+      "style": {
+        "navigationBarTitleText": "设备管理",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/health-report/index",
+      "style": {
+        "navigationBarTitleText": "我的报告",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/member/index",
+      "style": {
+        "navigationBarTitleText": "会员权益",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/member/family-care",
+      "style": {
+        "navigationBarTitleText": "亲友关怀",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/member/points",
+      "style": {
+        "navigationBarTitleText": "积分与礼遇",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/activity/index",
+      "style": {
+        "navigationBarTitleText": "活动优惠",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/activity/detail",
+      "style": {
+        "navigationBarTitleText": "活动详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/shop/detail",
+      "style": {
+        "navigationBarTitleText": "商品详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/shop/checkout",
+      "style": {
+        "navigationBarTitleText": "确认订单",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/shop/order-detail",
+      "style": {
+        "navigationBarTitleText": "订单详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/expert/detail",
+      "style": {
+        "navigationBarTitleText": "专家详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/expert/booking",
+      "style": {
+        "navigationBarTitleText": "预约支付",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/expert/appointments",
+      "style": {
+        "navigationBarTitleText": "我的预约",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/expert/consult",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "咨询服务"
+      }
+    },
+    {
+      "path": "modules/store/index",
+      "style": {
+        "navigationBarTitleText": "附近门店",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/cooperation/index",
+      "style": {
+        "navigationBarTitleText": "合作专区",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/about/index",
+      "style": {
+        "navigationBarTitleText": "了解中兵康养",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/news/index",
+      "style": {
+        "navigationBarTitleText": "健康资讯",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/news/detail",
+      "style": {
+        "navigationBarTitleText": "资讯详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/search/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "搜索",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "modules/login/index",
+      "style": {
+        "navigationBarTitleText": "登录",
         "navigationBarBackgroundColor": "#ffffff",
         "navigationBarTextStyle": "black"
       }
@@ -18,8 +282,64 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "APP功能配置",
+    "navigationBarTitleText": "中兵康养",
     "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#f7f8fa"
+    "backgroundColor": "#f5f7fa",
+    "app-plus": {
+      "background": "#f5f7fa"
+    }
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2ec4b6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.svg",
+        "selectedIconPath": "static/tabbar/home-active.svg"
+      },
+      {
+        "pagePath": "pages/service/index",
+        "text": "服务",
+        "iconPath": "static/tabbar/service.svg",
+        "selectedIconPath": "static/tabbar/service-active.svg"
+      },
+      {
+        "pagePath": "pages/shop/index",
+        "text": "商城",
+        "iconPath": "static/tabbar/shop.svg",
+        "selectedIconPath": "static/tabbar/shop-active.svg"
+      },
+      {
+        "pagePath": "pages/message/index",
+        "text": "消息",
+        "iconPath": "static/tabbar/message.svg",
+        "selectedIconPath": "static/tabbar/message-active.svg"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/mine.svg",
+        "selectedIconPath": "static/tabbar/mine-active.svg"
+      }
+    ]
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^wd-(.*)": "@wot-ui/ui/components/wd-$1/wd-$1.vue",
+      "^zb-(.*)": "@/components/zb-$1/zb-$1.vue"
+    }
+  },
+  "h5": {
+    "title": "中兵康养 - 山水为境，康养为本",
+    "rpxCalcMaxDeviceWidth": 375,
+    "rpxCalcBaseDeviceWidth": 375,
+    "router": {
+      "mode": "hash"
+    }
   }
 }
