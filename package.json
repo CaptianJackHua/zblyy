@@ -1,0 +1,32 @@
+{
+  "name": "zhongbing-kangyang",
+  "version": "1.0.0",
+  "description": "中兵康养 - uni-app + Vue3 + TS + Wot UI V2",
+  "scripts": {
+    "dev:h5": "uni",
+    "build:h5": "uni build",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin"
+  },
+  "dependencies": {
+    "@wot-ui/ui": "^2.4.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.4.8",
+    "@dcloudio/uni-app": "vue3",
+    "@dcloudio/uni-automator": "vue3",
+    "@dcloudio/uni-cli-shared": "vue3",
+    "@dcloudio/uni-components": "vue3",
+    "@dcloudio/uni-h5": "vue3",
+    "@dcloudio/uni-h5-vue": "vue3",
+    "@dcloudio/uni-mp-weixin": "vue3",
+    "@dcloudio/uni-stacktracey": "vue3",
+    "@dcloudio/vite-plugin-uni": "vue3",
+    "sass": "^1.98.0",
+    "typescript": "^5.4.5",
+    "vite": "5.2.8",
+    "vue-tsc": "^2.0.16"
+  }
+}

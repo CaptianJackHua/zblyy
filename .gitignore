@@ -1,0 +1,11 @@
+node_modules/
+unpackage/
+dist/
+.hbuilderx/
+.idea/
+.vscode/
+.DS_Store
+*.log
+*.local
+.env.local
+.env.*.local

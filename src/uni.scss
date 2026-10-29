@@ -1,0 +1,27 @@
+/**
+ * uni-app 全局 scss 变量
+ * 每个 scss 文件都会自动注入（vite.config.ts 已配置 additionalData）
+ */
+
+// 主题色
+$brand-primary: #36c994;
+$brand-blue: #4298e8;
+$brand-orange: #f7941d;
+$brand-red: #ff4757;
+
+// 文字色
+$text-main: #1f2937;
+$text-sub: #6b7280;
+$text-light: #9ca3af;
+
+// 背景
+$bg-page: #f5f7fa;
+$bg-white: #ffffff;
+
+// 圆角
+$radius-card: 16rpx;
+$radius-sm: 12rpx;
+$radius-pill: 999rpx;
+
+// 阴影
+$shadow-card: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
