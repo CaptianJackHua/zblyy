@@ -77,22 +77,28 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import { experts } from '@/data/experts';
+
+// 商城页会隐藏系统 TabBar，切回本页时确保恢复显示
+onShow(() => {
+  uni.showTabBar({ animation: false });
+});
 
 const activeTab = ref<'service' | 'doctor'>('service');
 const filter = ref('全部');
 
-const serviceFilters = ['全部', '预约服务', '心理咨询', '营养指导', '健康体检'];
+const serviceFilters = ['全部', '门店服务', '心理咨询', '营养指导', '健康体检'];
 const doctorFilters = ['全部', '心理咨询师', '健康管理师', '营养师'];
 
 const currentFilters = computed(() => (activeTab.value === 'service' ? serviceFilters : doctorFilters));
 
 const services = [
   { id: 1, name: '专家咨询', desc: '图文 / 电话 / 视频一对一咨询', price: '¥89 起', duration: '30 分钟 / 次', type: '心理咨询', icon: 'chat', action: 'expert' },
-  { id: 2, name: '服务预约', desc: '体检 / 理疗上门服务', price: '¥168 起', duration: '次日上门', type: '预约服务', icon: 'calendar', path: '/modules/health-service/appointment' },
-  { id: 3, name: '营养膳食方案', desc: '定制一周食谱与营养建议', price: '¥299', duration: '7 天方案', type: '营养指导', icon: 'salad', path: '/modules/health-service/appointment' },
-  { id: 5, name: '全面体检套餐', desc: '含核磁 / CT / 肿瘤筛查', price: '¥1680', duration: '约 3 小时', type: '健康体检', icon: 'stethoscope', path: '/modules/health-service/appointment' },
-  { id: 6, name: '中医理疗套餐', desc: '推拿 + 艾灸 + 拔罐', price: '¥580', duration: '约 90 分钟', type: '预约服务', icon: 'leaf', path: '/modules/health-service/appointment' }
+  { id: 2, name: '门店服务', desc: '到店针灸 / 推拿 / 艾灸 / 理疗', price: '¥88 起', duration: '约 40 分钟', type: '门店服务', icon: 'hospital', path: '/modules/store/index' },
+  { id: 3, name: '营养膳食方案', desc: '定制一周食谱与营养建议', price: '¥299', duration: '7 天方案', type: '营养指导', icon: 'salad', path: '' },
+  { id: 5, name: '全面体检套餐', desc: '含核磁 / CT / 肿瘤筛查', price: '¥1680', duration: '约 3 小时', type: '健康体检', icon: 'stethoscope', path: '' },
+  { id: 6, name: '中医理疗套餐', desc: '推拿 + 艾灸 + 拔罐', price: '¥580', duration: '约 90 分钟', type: '门店服务', icon: 'leaf', path: '/modules/store/detail?id=1' }
 ];
 
 const filteredServices = computed(() =>
@@ -114,6 +120,10 @@ const goAppointments = () => {
 const openService = (s: any) => {
   if (s.action === 'expert') {
     switchTab('doctor');
+    return;
+  }
+  if (!s.path) {
+    uni.showToast({ title: '服务详情即将上线', icon: 'none' });
     return;
   }
   uni.navigateTo({ url: s.path });

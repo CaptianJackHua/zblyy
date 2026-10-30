@@ -56,14 +56,6 @@
       }
     },
     {
-      "path": "modules/health-service/appointment",
-      "style": {
-        "navigationBarTitleText": "服务预约",
-        "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTextStyle": "black"
-      }
-    },
-    {
       "path": "modules/health-preserve/index",
       "style": {
         "navigationBarTitleText": "养生体验",
@@ -193,6 +185,14 @@
       }
     },
     {
+      "path": "modules/shop/coupons",
+      "style": {
+        "navigationBarTitleText": "我的优惠券",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
       "path": "modules/expert/detail",
       "style": {
         "navigationBarTitleText": "专家详情",
@@ -226,7 +226,15 @@
     {
       "path": "modules/store/index",
       "style": {
-        "navigationBarTitleText": "附近门店",
+        "navigationBarTitleText": "门店服务",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "modules/store/detail",
+      "style": {
+        "navigationBarTitleText": "门店详情",
         "navigationBarBackgroundColor": "#ffffff",
         "navigationBarTextStyle": "black"
       }

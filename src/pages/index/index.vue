@@ -302,7 +302,12 @@
 </template>
 
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app';
 import { bannerList, quickEntries, contentBanners, healthModules, memberBenefits, activityCards, shopProducts, newsList, storeList } from '@/data/home';
+
+onShow(() => {
+  uni.showTabBar({ animation: false });
+});
 
 const navigateTo = (url: string) => {
   uni.navigateTo({ url });

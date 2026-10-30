@@ -40,6 +40,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+
+onShow(() => {
+  uni.showTabBar({ animation: false });
+});
 
 const tabs = [
   { id: 'all', name: '全部', count: 5 },

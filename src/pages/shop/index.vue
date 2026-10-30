@@ -175,7 +175,7 @@
           <text class="info-label">收货地址</text>
           <zb-icon name="chevronRight" class="info-arrow" />
         </view>
-        <view class="info-row" @click="onTodo">
+        <view class="info-row" @click="goCoupons">
           <zb-icon name="gift" class="info-icon" />
           <text class="info-label">优惠券</text>
           <zb-icon name="chevronRight" class="info-arrow" />
@@ -330,6 +330,7 @@ const goCheckout = () => {
 };
 
 const goOrder = (id: string) => uni.navigateTo({ url: `/modules/shop/order-detail?id=${id}` });
+const goCoupons = () => uni.navigateTo({ url: '/modules/shop/coupons' });
 
 const onPayOrder = (order: MallOrder) => {
   uni.showModal({

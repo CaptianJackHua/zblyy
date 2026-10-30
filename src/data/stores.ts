@@ -1,0 +1,84 @@
+// 门店与门店服务数据
+export interface StoreService {
+  id: number;
+  name: string;
+  price: number;
+  duration: string;
+  desc: string;
+  icon: string;
+}
+
+export interface Store {
+  id: number;
+  name: string;
+  tag: string;
+  rating: number;
+  address: string;
+  distance: number;
+  tel: string;
+  hours: string;
+  intro: string;
+  services: StoreService[];
+}
+
+export const storeServices: StoreService[] = [
+  { id: 1, name: '针灸调理', price: 168, duration: '约 40 分钟', desc: '疏通经络、缓解颈肩腰腿疼痛', icon: 'sparkles' },
+  { id: 2, name: '推拿按摩', price: 198, duration: '约 45 分钟', desc: '全身经络推拿，放松肌肉与筋膜', icon: 'heart' },
+  { id: 3, name: '艾灸温养', price: 128, duration: '约 40 分钟', desc: '温经散寒、改善手脚冰凉与体虚', icon: 'leaf' },
+  { id: 4, name: '拔罐祛湿', price: 88, duration: '约 20 分钟', desc: '祛湿排毒、缓解疲劳与肌肉酸痛', icon: 'shield' },
+  { id: 5, name: '中药熏蒸', price: 158, duration: '约 30 分钟', desc: '药浴熏蒸，改善睡眠与代谢', icon: 'timer' },
+  { id: 6, name: '康复理疗', price: 268, duration: '约 60 分钟', desc: '仪器理疗 + 手法康复，术后调理', icon: 'stethoscope' }
+];
+
+export const stores: Store[] = [
+  {
+    id: 1,
+    name: '中兵康养中心（朝阳旗舰店）',
+    tag: '旗舰店',
+    rating: 4.9,
+    address: '北京市朝阳区建国路 88 号 SOHO 现代城 A 座 2 层',
+    distance: 2.3,
+    tel: '010-88888888',
+    hours: '09:00 - 21:00',
+    intro: '2000㎡ 中医理疗空间，配备 12 位持证理疗师，提供针灸、推拿、艾灸等 6 类到店服务。',
+    services: storeServices
+  },
+  {
+    id: 2,
+    name: '中兵康养中心（海淀店）',
+    tag: '',
+    rating: 4.8,
+    address: '北京市海淀区中关村大街 1 号海龙大厦 3 层',
+    distance: 5.8,
+    tel: '010-66666666',
+    hours: '09:00 - 20:00',
+    intro: '主打颈肩腰腿调理，针灸与推拿项目口碑领先，支持线上预约到店。',
+    services: storeServices.filter((s) => [1, 2, 3, 4].includes(s.id))
+  },
+  {
+    id: 3,
+    name: '中兵康养中心（东城店）',
+    tag: '',
+    rating: 4.7,
+    address: '北京市东城区东长安街 100 号东方广场 B 座',
+    distance: 8.1,
+    tel: '010-77777777',
+    hours: '09:00 - 19:00',
+    intro: '老城核心区，主打艾灸温养与中药熏蒸，适合体虚、睡眠不佳人群。',
+    services: storeServices.filter((s) => [3, 4, 5].includes(s.id))
+  },
+  {
+    id: 4,
+    name: '中兵康养中心（西城店）',
+    tag: '新店',
+    rating: 4.6,
+    address: '北京市西城区金融大街 8 号',
+    distance: 10.5,
+    tel: '010-55555555',
+    hours: '09:00 - 20:00',
+    intro: '新店开业，康复理疗与推拿项目 8 折体验中。',
+    services: storeServices.filter((s) => [2, 5, 6].includes(s.id))
+  }
+];
+
+export const getStore = (id: number) => stores.find((s) => s.id === id);

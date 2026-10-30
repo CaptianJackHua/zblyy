@@ -119,13 +119,13 @@ export const setCheckout = (items: OrderItem[]) => {
 
 export const checkoutTotal = () => mallState.checkout.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-export const createOrder = (address: string): MallOrder => {
+export const createOrder = (address: string, discount = 0): MallOrder => {
   const now = Date.now();
   const order: MallOrder = {
     id: `O${now}`,
     no: `ZB${now.toString().slice(-10)}`,
     items: mallState.checkout.map((i) => ({ ...i })),
-    total: checkoutTotal(),
+    total: Math.max(0, checkoutTotal() - discount),
     status: 'pending',
     address,
     createdAt: now

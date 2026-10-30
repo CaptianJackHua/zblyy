@@ -14,10 +14,10 @@
         <text class="entry-title">专家咨询</text>
         <text class="entry-desc">图文/电话/视频咨询</text>
       </view>
-      <view class="entry-card" @click="goTo('/modules/health-service/appointment')">
-        <view class="entry-icon"><zb-icon name="calendar" /></view>
-        <text class="entry-title">服务预约</text>
-        <text class="entry-desc">体检/理疗上门</text>
+      <view class="entry-card" @click="goTo('/modules/store/index')">
+        <view class="entry-icon"><zb-icon name="hospital" /></view>
+        <text class="entry-title">门店服务</text>
+        <text class="entry-desc">针灸 · 推拿 · 艾灸</text>
       </view>
     </view>
 
@@ -30,7 +30,7 @@
           v-for="d in services"
           :key="d.id"
           class="dept-item"
-          @click="goTo('/modules/health-service/appointment')"
+          @click="goTo(`/modules/store/detail?id=1&service=${d.name}`)"
         >
           <view class="dept-icon"><zb-icon :name="d.icon" /></view>
           <text class="dept-name">{{ d.name }}</text>
@@ -44,10 +44,10 @@
 
 <script setup lang="ts">
 const services = [
-  { id: 1, name: '全面体检', icon: 'stethoscope', desc: '¥1680 起' },
-  { id: 2, name: '中医理疗', icon: 'leaf', desc: '¥580 起' },
-  { id: 3, name: '营养膳食', icon: 'salad', desc: '¥299 起' },
-  { id: 4, name: '上门护理', icon: 'hospital', desc: '¥168 起' }
+  { id: 1, name: '针灸调理', icon: 'sparkles', desc: '¥168 / 次' },
+  { id: 2, name: '推拿按摩', icon: 'heart', desc: '¥198 / 次' },
+  { id: 3, name: '艾灸温养', icon: 'leaf', desc: '¥128 / 次' },
+  { id: 4, name: '拔罐祛湿', icon: 'shield', desc: '¥88 / 次' }
 ];
 
 const goTo = (url: string) => uni.navigateTo({ url });

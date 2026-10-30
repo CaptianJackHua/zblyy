@@ -59,9 +59,27 @@
     </view>
 
     <view class="card">
+      <view class="card-title">优惠</view>
+      <view class="coupon-row" @click="chooseCoupon">
+        <text class="coupon-label">优惠券</text>
+        <view class="coupon-value-wrap">
+          <text class="coupon-value" :class="{ none: !selectedCoupon }">
+            {{ selectedCoupon ? `-¥${selectedCoupon.amount}` : couponHint }}
+          </text>
+          <zb-icon name="chevronRight" class="coupon-arrow" />
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
       <view class="amount-row">
         <text class="amount-label">商品合计</text>
         <text class="amount-value">¥{{ total }}</text>
+      </view>
+      <view class="amount-row">
+        <text class="amount-label">优惠券</text>
+        <text v-if="selectedCoupon" class="amount-deduct">-¥{{ selectedCoupon.amount }}</text>
+        <text v-else class="amount-none">未使用</text>
       </view>
       <view class="amount-row">
         <text class="amount-label">运费</text>
@@ -69,7 +87,7 @@
       </view>
       <view class="amount-row total-row">
         <text class="amount-label">实付金额</text>
-        <text class="amount-final">¥{{ total }}</text>
+        <text class="amount-final">¥{{ payable }}</text>
       </view>
     </view>
 
@@ -78,7 +96,7 @@
     <view v-if="items.length" class="checkout-bottom">
       <view class="bottom-total">
         <text class="bottom-label">合计</text>
-        <text class="bottom-amount">¥{{ total }}</text>
+        <text class="bottom-amount">¥{{ payable }}</text>
       </view>
       <view class="submit-btn" @click="submit">提交订单并支付</view>
     </view>
@@ -88,6 +106,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
+import { bestCouponFor, availableCoupons } from '@/data/coupons';
+import type { Coupon } from '@/data/coupons';
 import {
   mallState,
   checkoutTotal,
@@ -103,6 +123,25 @@ const total = computed(() => checkoutTotal());
 const remark = ref('');
 const payMethod = ref<'wechat' | 'alipay'>('wechat');
 const submitting = ref(false);
+const selectedCoupon = ref<Coupon | undefined>(bestCouponFor(total.value));
+
+const usableCoupons = computed(() => availableCoupons().filter((c) => total.value >= c.threshold));
+const couponHint = computed(() => (usableCoupons.value.length ? '有可用券' : '暂无可用'));
+const payable = computed(() => Math.max(0, total.value - (selectedCoupon.value?.amount || 0)));
+
+const chooseCoupon = () => {
+  if (!usableCoupons.value.length) {
+    uni.showToast({ title: '暂无可用优惠券', icon: 'none' });
+    return;
+  }
+  uni.showActionSheet({
+    itemList: [...usableCoupons.value.map((c) => `${c.title}  满${c.threshold}减${c.amount}`), '不使用优惠券'],
+    success: (res) => {
+      const idx = res.tapIndex;
+      selectedCoupon.value = idx < usableCoupons.value.length ? usableCoupons.value[idx] : undefined;
+    }
+  });
+};
 
 onLoad(() => {
   if (!mallState.checkout.length) {
@@ -120,7 +159,7 @@ const onAddress = () => uni.showToast({ title: '地址管理开发中', icon: 'n
 const submit = () => {
   if (submitting.value || !items.value.length) return;
   submitting.value = true;
-  const order = createOrder(ADDRESS);
+  const order = createOrder(ADDRESS, selectedCoupon.value?.amount || 0);
   uni.showLoading({ title: '支付中...', mask: true });
   setTimeout(() => {
     uni.hideLoading();
@@ -228,6 +267,18 @@ const submit = () => {
 }
 .radio.active { background: $zb-primary; border-color: $zb-primary; }
 
+.coupon-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0 4rpx;
+}
+.coupon-label { font-size: 27rpx; color: $zb-text-primary; }
+.coupon-value-wrap { display: flex; align-items: center; gap: 8rpx; }
+.coupon-value { font-size: 26rpx; font-weight: 600; color: #ff4d4f; }
+.coupon-value.none { font-weight: 400; color: $zb-text-tertiary; }
+.coupon-arrow { font-size: 26rpx; color: $zb-text-tertiary; }
+
 .amount-row {
   display: flex;
   align-items: center;
@@ -238,6 +289,8 @@ const submit = () => {
 }
 .amount-label { color: $zb-text-secondary; }
 .amount-value { color: $zb-text-primary; }
+.amount-deduct { color: #ff4d4f; font-weight: 600; }
+.amount-none { color: $zb-text-tertiary; }
 .amount-free { color: $zb-success; }
 .total-row { margin-top: 8rpx; padding-top: 20rpx; border-top: 1rpx solid $zb-border-light; }
 .total-row .amount-label { font-size: 28rpx; font-weight: 600; color: $zb-text-primary; }

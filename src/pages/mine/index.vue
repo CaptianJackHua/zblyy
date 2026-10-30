@@ -61,8 +61,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import { mallState, mallUi } from '@/utils/mall-store';
 import { expertState } from '@/utils/expert-store';
+
+onShow(() => {
+  uni.showTabBar({ animation: false });
+});
 
 const stats = computed(() => [
   { label: '健康档案', value: '3', path: '/modules/health-archive/index' },
