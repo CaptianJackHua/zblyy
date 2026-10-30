@@ -85,34 +85,59 @@
       </view>
       <view class="data-content">
         <view class="device-card" @click="navigateTo(healthDevice.path)">
-          <view class="device-top">
-            <text class="device-name">{{ healthDevice.name }}</text>
-          </view>
-          <view class="device-tag">{{ healthDevice.tag }}</view>
-          <view class="device-watch"><zb-icon name="watch" color="rgba(255,255,255,0.9)" /></view>
-          <view class="device-stats">
-            <view class="ds-item">
-              <zb-icon name="pulse" color="#7ef0e2" />
-              <text class="ds-value">{{ healthDevice.heartRate }}</text>
-              <text class="ds-label">心率</text>
+          <view class="device-icon"><zb-icon name="watch" color="#ffffff" /></view>
+          <view class="device-info">
+            <view class="device-name-row">
+              <text class="device-name">{{ healthDevice.name }}</text>
+              <view v-if="healthDevice.connected" class="device-connected">已连接</view>
             </view>
-            <view class="ds-item">
-              <text class="ds-value">{{ healthDevice.battery }}%</text>
-              <text class="ds-label">电量</text>
+            <text class="device-sync">{{ healthDevice.synced }}</text>
+          </view>
+          <view class="device-battery">
+            <text class="battery-value">{{ healthDevice.battery }}%</text>
+            <view class="battery-bar">
+              <view class="battery-fill" :style="{ width: healthDevice.battery + '%' }"></view>
             </view>
           </view>
         </view>
+
+        <view class="heart-card">
+          <view class="heart-head">
+            <text class="heart-title">心率</text>
+            <view class="status-tag">{{ heartRate.status }}</view>
+          </view>
+          <view class="heart-body">
+            <view class="heart-main">
+              <view class="heart-value-row">
+                <text class="heart-value">{{ heartRate.value }}</text>
+                <text class="heart-unit">{{ heartRate.unit }}</text>
+              </view>
+              <text class="heart-ref">{{ heartRate.reference }}</text>
+            </view>
+            <view class="bar-chart">
+              <view
+                v-for="(h, i) in heartRate.bars"
+                :key="i"
+                class="bar"
+                :class="{ active: i === heartRate.bars.length - 1 }"
+                :style="{ height: h + '%' }"
+              ></view>
+            </view>
+          </view>
+        </view>
+
         <view class="metric-grid">
           <view v-for="m in healthMetrics" :key="m.id" class="metric-card">
-            <view class="metric-top">
-              <view class="metric-icon" :style="{ backgroundColor: m.bg, color: m.color }">
-                <zb-icon :name="m.icon" />
-              </view>
+            <view class="metric-head">
               <text class="metric-name">{{ m.name }}</text>
+              <view class="metric-dot"></view>
             </view>
             <view class="metric-value-row">
-              <text class="metric-value" :style="{ color: m.color }">{{ m.value }}</text>
+              <text class="metric-value">{{ m.value }}</text>
               <text class="metric-unit">{{ m.unit }}</text>
+            </view>
+            <view class="metric-bars">
+              <view v-for="(h, i) in m.bars" :key="i" class="m-bar" :style="{ height: h + '%' }"></view>
             </view>
           </view>
         </view>
@@ -256,7 +281,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
-import { bannerList, quickEntries, healthDevice, healthMetrics, shopProducts, newsTabs, newsList, storeList } from '@/data/home';
+import { bannerList, quickEntries, healthDevice, heartRate, healthMetrics, shopProducts, newsTabs, newsList, storeList } from '@/data/home';
 
 onShow(() => {
   uni.showTabBar({ animation: false });
@@ -633,122 +658,248 @@ const filteredNews = computed(() =>
 /* 健康数据 */
 .data-content {
   display: flex;
-  gap: 20rpx;
-}
-
-.device-card {
-  width: 280rpx;
-  flex-shrink: 0;
-  display: flex;
   flex-direction: column;
-  padding: 24rpx;
-  background: linear-gradient(160deg, #0f766e 0%, #134e4a 100%);
-  border-radius: 20rpx;
-}
-
-.device-name {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #fff;
-}
-
-.device-tag {
-  align-self: flex-start;
-  margin-top: 10rpx;
-  padding: 2rpx 12rpx;
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 8rpx;
-  font-size: 18rpx;
-  color: #a7f3ea;
-}
-
-.device-watch {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 88rpx;
-  padding: 16rpx 0;
-}
-
-.device-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ds-item {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-  font-size: 22rpx;
-}
-
-.ds-value {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #fff;
-}
-
-.ds-label {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.metric-grid {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 16rpx;
 }
 
-.metric-card {
+.device-card {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 14rpx;
-  padding: 18rpx;
-  background: $zb-bg-grey;
-  border-radius: 16rpx;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #33584a 0%, #1f3d33 100%);
+  border-radius: 20rpx;
 }
 
-.metric-top {
+.device-icon {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+  flex-shrink: 0;
+}
+
+.device-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.device-name-row {
   display: flex;
   align-items: center;
   gap: 12rpx;
 }
 
-.metric-icon {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 12rpx;
+.device-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.device-connected {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 26rpx;
+  padding: 2rpx 12rpx;
+  background: rgba(110, 231, 183, 0.18);
+  border-radius: 8rpx;
+  font-size: 18rpx;
+  color: #86efac;
   flex-shrink: 0;
+}
+
+.device-sync {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.device-battery {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.battery-value {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.battery-bar {
+  width: 96rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.battery-fill {
+  height: 100%;
+  border-radius: 4rpx;
+  background: #86efac;
+}
+
+.heart-card {
+  padding: 24rpx;
+  background: #f6f8f8;
+  border-radius: 20rpx;
+}
+
+.heart-head {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.heart-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $zb-text-primary;
+}
+
+.status-tag {
+  padding: 2rpx 12rpx;
+  background: rgba(46, 196, 182, 0.14);
+  border-radius: 8rpx;
+  font-size: 19rpx;
+  color: $zb-primary;
+  font-weight: 500;
+}
+
+.heart-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 14rpx;
+}
+
+.heart-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.heart-value-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.heart-value {
+  font-size: 68rpx;
+  font-weight: 700;
+  color: #1f3d33;
+  line-height: 1.1;
+}
+
+.heart-unit {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+  color: $zb-text-secondary;
+}
+
+.heart-ref {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: $zb-text-tertiary;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+}
+
+.bar {
+  width: 12rpx;
+  border-radius: 6rpx;
+  background: #d7e0dd;
+}
+
+.bar.active {
+  background: $zb-primary;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 16rpx;
+  background: #f6f8f8;
+  border-radius: 16rpx;
+  min-width: 0;
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6rpx;
 }
 
 .metric-name {
   font-size: 22rpx;
-  color: $zb-text-tertiary;
+  color: $zb-text-secondary;
+  white-space: nowrap;
+}
+
+.metric-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: $zb-primary;
+  flex-shrink: 0;
 }
 
 .metric-value-row {
   display: flex;
   align-items: baseline;
+  margin-top: 10rpx;
+  min-width: 0;
 }
 
 .metric-value {
   font-size: 32rpx;
   font-weight: 700;
+  color: #1f3d33;
+  white-space: nowrap;
 }
 
 .metric-unit {
   margin-left: 4rpx;
   font-size: 18rpx;
   color: $zb-text-tertiary;
+  white-space: nowrap;
+}
+
+.metric-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5rpx;
+  height: 40rpx;
+  margin-top: 12rpx;
+}
+
+.m-bar {
+  flex: 1;
+  border-radius: 3rpx;
+  background: #d7e0dd;
 }
 
 /* 健康产品 */

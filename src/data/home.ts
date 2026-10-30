@@ -25,31 +25,39 @@ export const bannerList = [
 
 // 快捷入口 8 宫格
 export const quickEntries = [
-  { id: 1, name: '健康档案', icon: 'clipboard', path: '/modules/health-archive/index', color: '#e0f7f5', textColor: '#2ec4b6' },
-  { id: 2, name: '健康评估', icon: 'chart', path: '/modules/health-assessment/index', color: '#e8f4fd', textColor: '#3b82f6' },
-  { id: 3, name: '设备管理', icon: 'watch', path: '/modules/device-manage/index', color: '#fef3e2', textColor: '#f59e0b' },
-  { id: 4, name: '我的预约', icon: 'calendar', path: '/modules/expert/appointments', color: '#fce4ec', textColor: '#e91e63' },
-  { id: 5, name: '专家服务', icon: 'stethoscope', path: '/modules/health-service/index', color: '#f3e8fd', textColor: '#8b5cf6' },
-  { id: 6, name: '疾病百科', icon: 'book', path: '/modules/news/index', color: '#e0f2e9', textColor: '#22c55e' },
-  { id: 7, name: '健康活动', icon: 'sparkles', path: '/modules/activity/index', color: '#fff4e0', textColor: '#ff9800' },
-  { id: 8, name: '更多服务', icon: 'plus', path: '', tab: '/pages/service/index', color: '#eef2f6', textColor: '#64748b' }
+  { id: 1, name: '智慧健康', icon: 'pulse', path: '/modules/smart-health/index', color: '#e0f7f5', textColor: '#2ec4b6' },
+  { id: 2, name: '专家服务', icon: 'stethoscope', path: '/modules/health-service/index', color: '#f3e8fd', textColor: '#8b5cf6' },
+  { id: 3, name: '养生健康', icon: 'leaf', path: '/modules/health-preserve/index', color: '#e0f2e9', textColor: '#22c55e' },
+  { id: 4, name: '康养旅居', icon: 'mountain', path: '/modules/health-travel/index', color: '#fce4ec', textColor: '#e91e63' },
+  { id: 5, name: '健康评估', icon: 'chart', path: '/modules/health-assessment/index', color: '#e8f4fd', textColor: '#3b82f6' },
+  { id: 6, name: '设备管理', icon: 'watch', path: '/modules/device-manage/index', color: '#fef3e2', textColor: '#f59e0b' },
+  { id: 7, name: '疾病百科', icon: 'book', path: '/modules/news/index', color: '#e0f7f5', textColor: '#14b8a6' },
+  { id: 8, name: '会员权益', icon: 'medal', path: '/modules/member/index', color: '#eef2f6', textColor: '#64748b' }
 ];
 
 // 健康数据 - 绑定设备
 export const healthDevice = {
   name: '中兵智能手表 S1',
-  tag: '设备管理',
-  heartRate: 98,
-  battery: 80,
+  connected: true,
+  synced: '同步于 2 分钟前',
+  battery: 86,
   path: '/modules/device-manage/index'
+};
+
+// 健康数据 - 心率
+export const heartRate = {
+  value: 72,
+  unit: '次/分',
+  status: '正常',
+  reference: '参考 60-100',
+  bars: [34, 52, 68, 46, 88, 58, 74, 40, 96]
 };
 
 // 健康数据 - 指标
 export const healthMetrics = [
-  { id: 1, name: '心率', value: '98', unit: 'bpm', icon: 'pulse', color: '#ff6b6b', bg: '#fff0f0' },
-  { id: 2, name: '血压', value: '128/75', unit: 'mmHg', icon: 'activity', color: '#3b82f6', bg: '#eef5ff' },
-  { id: 3, name: '血氧', value: '96', unit: '%', icon: 'droplet', color: '#2ec4b6', bg: '#e0f7f5' },
-  { id: 4, name: '血糖', value: '5.6', unit: 'mmol/L', icon: 'flame', color: '#f59e0b', bg: '#fef6e2' }
+  { id: 1, name: '血压', value: '118/75', unit: 'mmHg', bars: [40, 62, 48, 70, 56, 84, 50] },
+  { id: 2, name: '血氧', value: '98', unit: '%', bars: [52, 44, 66, 58, 74, 62, 86] },
+  { id: 3, name: '血糖', value: '5.6', unit: 'mmol/L', bars: [44, 58, 50, 68, 60, 78, 54] }
 ];
 
 // 健康产品
