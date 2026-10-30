@@ -15,7 +15,7 @@
 
     <!-- Banner + 搜索 -->
     <view class="banner-section">
-      <swiper class="banner-swiper" :autoplay="true" :interval="4000" :circular="true" :indicator-dots="true" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" @change="onBannerChange">
+      <swiper class="banner-swiper" :autoplay="true" :interval="4000" :circular="true" :indicator-dots="true" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff">
         <swiper-item v-for="item in bannerList" :key="item.id">
           <view class="banner-item" :style="{ backgroundImage: `url(${item.image})` }">
             <view class="banner-overlay">
@@ -30,19 +30,38 @@
       <!-- 搜索框 -->
       <view class="search-bar" @click="goSearch">
         <zb-icon class="search-icon" name="search" color="#999999" />
-        <text class="search-placeholder">搜索服务、商品、酒店</text>
+        <text class="search-placeholder">搜索服务、商品、门店</text>
         <text class="search-btn">搜索</text>
       </view>
     </view>
 
-    <!-- 快捷入口 4 宫格 -->
+    <!-- 中兵小医 + 我的健康 -->
+    <view class="duo-cards">
+      <view class="ai-card" @click="navigateTo('/modules/xiaoyi/chat')">
+        <view class="ai-top">
+          <view class="ai-avatar"><zb-icon name="bot" color="#ffffff" /></view>
+          <view class="ai-info">
+            <text class="ai-name">中兵小医</text>
+            <text class="ai-desc">智能健康顾问 · 24 小时在线</text>
+          </view>
+        </view>
+        <view class="ai-btn">立即咨询</view>
+      </view>
+      <view class="myhealth-card" @click="navigateTo('/modules/health-archive/index')">
+        <view class="mh-icon"><zb-icon name="clipboard" color="#2ec4b6" /></view>
+        <text class="mh-name">我的健康</text>
+        <text class="mh-desc">病历档案 · 一键查看</text>
+      </view>
+    </view>
+
+    <!-- 快捷入口 8 宫格 -->
     <view class="quick-entry">
       <view class="entry-grid">
-        <view 
-          v-for="item in quickEntries" 
-          :key="item.id" 
+        <view
+          v-for="item in quickEntries"
+          :key="item.id"
           class="entry-item"
-          @click="navigateTo(item.path)"
+          @click="openEntry(item)"
         >
           <view class="entry-icon" :style="{ backgroundColor: item.color }">
             <zb-icon class="entry-emoji" :name="item.icon" :color="item.textColor" />
@@ -52,143 +71,60 @@
       </view>
     </view>
 
-    <!-- 中兵小医 AI 助手 -->
-    <view class="xiaoyi-card" @click="navigateTo('/modules/xiaoyi/chat')">
-      <view class="xiaoyi-left">
-        <view class="xiaoyi-avatar"><zb-icon name="bot" color="#ffffff" /></view>
-        <view class="xiaoyi-info">
-          <view class="xiaoyi-name">
-            <text class="name-cn">中兵小医</text>
-            <text class="name-en">ZHONGBING AI DOCTOR</text>
-          </view>
-          <text class="xiaoyi-desc">智能健康顾问 · 24 小时在线</text>
-        </view>
-      </view>
-      <view class="xiaoyi-btn">
-        <text class="btn-text">立即咨询</text>
-      </view>
-    </view>
-
-    <!-- 内容 Banner 轮播 -->
-    <view class="content-banner-section">
-      <swiper class="content-swiper" :autoplay="true" :interval="5000" :circular="true" @click="onContentBannerClick">
-        <swiper-item v-for="item in contentBanners" :key="item.id">
-          <view class="content-banner" :style="{ backgroundImage: `url(${item.image})` }">
-            <view class="content-banner-overlay">
-              <view class="content-banner-title">{{ item.title }}</view>
-              <view class="content-banner-desc">{{ item.desc }}</view>
-            </view>
-          </view>
-        </swiper-item>
-      </swiper>
-    </view>
-
-    <!-- 我的健康模块 -->
+    <!-- 健康数据 -->
     <view class="section">
       <view class="section-header">
         <view class="header-left">
-          <text class="section-title">我的健康</text>
-          <text class="section-subtitle">My Health Space</text>
+          <text class="section-title">健康数据</text>
+          <text class="section-subtitle">Health Data</text>
         </view>
-        <view class="header-more" @click="navigateTo('/modules/health-archive/index')">
-          <text>个人健康空间</text>
+        <view class="header-more" @click="navigateTo('/modules/device-manage/index')">
+          <text>更多</text>
           <zb-icon class="arrow" name="chevronRight" color="#999999" />
         </view>
       </view>
-      <view class="health-grid">
-        <view 
-          v-for="item in healthModules" 
-          :key="item.id" 
-          class="health-item"
-          @click="navigateTo(item.path)"
-        >
-          <view class="health-icon-wrap">
-            <zb-icon class="health-icon" :name="item.icon" color="#2ec4b6" />
+      <view class="data-content">
+        <view class="device-card" @click="navigateTo(healthDevice.path)">
+          <view class="device-top">
+            <text class="device-name">{{ healthDevice.name }}</text>
           </view>
-          <text class="health-name">{{ item.name }}</text>
-          <text class="health-desc">{{ item.desc }}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 会员权益模块 -->
-    <view class="section member-section">
-      <view class="section-header">
-        <view class="header-left">
-          <text class="section-title">会员权益</text>
-          <text class="section-subtitle">Member Benefits</text>
-        </view>
-      </view>
-      <view class="member-content">
-        <view class="member-left">
-          <view 
-            v-for="item in memberBenefits" 
-            :key="item.id" 
-            class="member-item"
-            @click="navigateTo(item.path)"
-          >
-            <view class="member-item-info">
-              <text class="member-item-name">{{ item.name }}</text>
-              <text class="member-item-desc">{{ item.desc }}</text>
+          <view class="device-tag">{{ healthDevice.tag }}</view>
+          <view class="device-watch"><zb-icon name="watch" color="rgba(255,255,255,0.9)" /></view>
+          <view class="device-stats">
+            <view class="ds-item">
+              <zb-icon name="pulse" color="#7ef0e2" />
+              <text class="ds-value">{{ healthDevice.heartRate }}</text>
+              <text class="ds-label">心率</text>
             </view>
-            <zb-icon class="member-item-arrow" name="chevronRight" color="#999999" />
+            <view class="ds-item">
+              <text class="ds-value">{{ healthDevice.battery }}%</text>
+              <text class="ds-label">电量</text>
+            </view>
           </view>
         </view>
-        <view class="member-card" @click="navigateTo('/modules/member/index')">
-          <view class="card-decoration"></view>
-          <view class="card-content">
-            <text class="card-title">礼遇升级</text>
-            <text class="card-sub">家庭康养会员卡</text>
-            <view class="card-btn">立即查看</view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 活动优惠模块 -->
-    <view class="section">
-      <view class="section-header">
-        <view class="header-left">
-          <text class="section-title">活动优惠</text>
-          <text class="section-subtitle">Special Offers</text>
-        </view>
-        <view class="header-more" @click="navigateTo('/modules/activity/index')">
-          <text>查看更多</text>
-          <zb-icon class="arrow" name="chevronRight" color="#999999" />
-        </view>
-      </view>
-      <view class="activity-list">
-        <view 
-          v-for="item in activityCards" 
-          :key="item.id" 
-          class="activity-card"
-          @click="navigateTo(item.path)"
-        >
-          <view class="activity-image" :style="{ backgroundImage: `url(${item.image})` }">
-            <view class="activity-tag">{{ item.tag }}</view>
-          </view>
-          <view class="activity-info">
-            <view class="activity-type">{{ item.title }}</view>
-            <view class="activity-desc">{{ item.desc }}</view>
-            <view class="activity-price-row">
-              <view class="price-wrap">
-                <text class="currency">¥</text>
-                <text class="price">{{ item.price }}</text>
-                <text class="original-price">¥{{ item.originalPrice }}</text>
+        <view class="metric-grid">
+          <view v-for="m in healthMetrics" :key="m.id" class="metric-card">
+            <view class="metric-top">
+              <view class="metric-icon" :style="{ backgroundColor: m.bg, color: m.color }">
+                <zb-icon :name="m.icon" />
               </view>
-              <view class="activity-btn">立即抢购</view>
+              <text class="metric-name">{{ m.name }}</text>
+            </view>
+            <view class="metric-value-row">
+              <text class="metric-value" :style="{ color: m.color }">{{ m.value }}</text>
+              <text class="metric-unit">{{ m.unit }}</text>
             </view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 商城模块 -->
+    <!-- 健康产品 -->
     <view class="section">
       <view class="section-header">
         <view class="header-left">
-          <text class="section-title">商城</text>
-          <text class="section-subtitle">Shop</text>
+          <text class="section-title">健康产品</text>
+          <text class="section-subtitle">Health Products</text>
         </view>
         <view class="header-more" @click="switchTab('/pages/shop/index')">
           <text>查看全部</text>
@@ -196,13 +132,15 @@
         </view>
       </view>
       <view class="shop-grid">
-        <view 
-          v-for="item in shopProducts" 
-          :key="item.id" 
+        <view
+          v-for="item in shopProducts"
+          :key="item.id"
           class="shop-item"
           @click="navigateTo(`/modules/shop/detail?id=${item.id}`)"
         >
-          <view class="shop-image" :style="{ backgroundImage: `url(${item.image})` }"></view>
+          <view class="shop-image" :style="{ backgroundImage: `url(${item.image})` }">
+            <view v-if="item.tag" class="shop-tag">{{ item.tag }}</view>
+          </view>
           <view class="shop-info">
             <text class="shop-name">{{ item.name }}</text>
             <text class="shop-spec">{{ item.spec }}</text>
@@ -210,6 +148,7 @@
               <view class="shop-price">
                 <text class="currency">¥</text>
                 <text class="price">{{ item.price }}</text>
+                <text class="original-price">¥{{ item.originalPrice }}</text>
               </view>
               <view class="shop-cart" @click.stop="addToCart(item)">
                 <zb-icon name="cart" color="#2ec4b6" />
@@ -242,11 +181,11 @@
         </view>
       </view>
       <view class="store-list-mini">
-        <view 
-          v-for="store in storeList.slice(0, 2)" 
-          :key="store.id" 
+        <view
+          v-for="store in storeList.slice(0, 2)"
+          :key="store.id"
           class="store-mini-item"
-          @click="navigateTo('/modules/store/index')"
+          @click="navigateTo(`/modules/store/detail?id=${store.id}`)"
         >
           <view class="store-icon"><zb-icon name="hospital" color="#2ec4b6" /></view>
           <view class="store-info">
@@ -273,10 +212,23 @@
           <zb-icon class="arrow" name="chevronRight" color="#999999" />
         </view>
       </view>
+      <scroll-view scroll-x class="news-tabs" :show-scrollbar="false">
+        <view class="tabs-row">
+          <view
+            v-for="t in newsTabs"
+            :key="t"
+            class="news-tab"
+            :class="{ active: newsTab === t }"
+            @click="newsTab = t"
+          >
+            {{ t }}
+          </view>
+        </view>
+      </scroll-view>
       <view class="news-list">
-        <view 
-          v-for="news in newsList" 
-          :key="news.id" 
+        <view
+          v-for="news in filteredNews"
+          :key="news.id"
           class="news-item"
           @click="navigateTo(`/modules/news/detail?id=${news.id}`)"
         >
@@ -302,8 +254,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
-import { bannerList, quickEntries, contentBanners, healthModules, memberBenefits, activityCards, shopProducts, newsList, storeList } from '@/data/home';
+import { bannerList, quickEntries, healthDevice, healthMetrics, shopProducts, newsTabs, newsList, storeList } from '@/data/home';
 
 onShow(() => {
   uni.showTabBar({ animation: false });
@@ -325,17 +278,22 @@ const goSearch = () => {
   navigateTo('/modules/search/index');
 };
 
-const onBannerChange = (e: any) => {
-  console.log('Banner 切换:', e.detail.current);
-};
-
-const onContentBannerClick = () => {
-  uni.showToast({ title: '跳转活动详情', icon: 'none' });
+const openEntry = (item: any) => {
+  if (item.tab) {
+    uni.switchTab({ url: item.tab });
+    return;
+  }
+  navigateTo(item.path);
 };
 
 const addToCart = (item: any) => {
   uni.showToast({ title: `${item.name} 已加入购物车`, icon: 'success' });
 };
+
+const newsTab = ref('推荐');
+const filteredNews = computed(() =>
+  newsTab.value === '推荐' ? newsList : newsList.filter((n) => n.category === newsTab.value)
+);
 </script>
 
 <style lang="scss" scoped>
@@ -486,9 +444,109 @@ const addToCart = (item: any) => {
   border-radius: 36rpx;
 }
 
-/* 快捷入口 */
+/* 中兵小医 + 我的健康 双卡 */
+.duo-cards {
+  display: flex;
+  gap: 20rpx;
+  margin: 76rpx 32rpx 0;
+}
+
+.ai-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #134e4a 0%, #0f766e 100%);
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(15, 118, 110, 0.25);
+}
+
+.ai-top {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.ai-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, $zb-primary 0%, #3b82f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+  flex-shrink: 0;
+}
+
+.ai-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ai-desc {
+  font-size: 19rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4rpx;
+}
+
+.ai-btn {
+  align-self: flex-end;
+  margin-top: 20rpx;
+  padding: 10rpx 28rpx;
+  background: linear-gradient(135deg, $zb-primary 0%, lighten($zb-primary, 8%) 100%);
+  border-radius: 32rpx;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.myhealth-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: $zb-shadow-sm;
+}
+
+.mh-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: $zb-primary-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+
+.mh-name {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $zb-text-primary;
+}
+
+.mh-desc {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: $zb-text-tertiary;
+}
+
+/* 快捷入口 8 宫格 */
 .quick-entry {
-  margin: 72rpx 24rpx 0;
+  margin: 24rpx 32rpx 0;
   padding: 36rpx 12rpx 32rpx;
   background: #fff;
   border-radius: 28rpx;
@@ -496,167 +554,35 @@ const addToCart = (item: any) => {
 }
 
 .entry-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 32rpx;
 }
 
 .entry-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
-  gap: 18rpx;
+  gap: 16rpx;
 }
 
 .entry-icon {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 32rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .entry-emoji {
-  font-size: 48rpx;
-}
-
-.entry-name {
-  font-size: 26rpx;
-  font-weight: 500;
-  color: $zb-text-primary;
-  letter-spacing: 0.5rpx;
-}
-
-/* 中兵小医卡片 */
-.xiaoyi-card {
-  margin: 24rpx 32rpx;
-  padding: 28rpx;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 8rpx 32rpx rgba(26, 26, 46, 0.2);
-}
-
-.xiaoyi-left {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  flex: 1;
-  min-width: 0;
-}
-
-.xiaoyi-avatar {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, $zb-primary 0%, #3b82f6 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 44rpx;
 }
 
-.xiaoyi-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.xiaoyi-name {
-  display: flex;
-  align-items: baseline;
-  gap: 10rpx;
-  min-width: 0;
-}
-
-.name-cn {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.name-en {
-  font-size: 18rpx;
-  color: rgba(255,255,255,0.5);
-  letter-spacing: 1rpx;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.xiaoyi-desc {
+.entry-name {
   font-size: 24rpx;
-  color: rgba(255,255,255,0.6);
-  margin-top: 6rpx;
-}
-
-.xiaoyi-btn {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 16rpx 28rpx;
-  background: linear-gradient(135deg, $zb-primary 0%, lighten($zb-primary, 8%) 100%);
-  border-radius: 36rpx;
-  flex-shrink: 0;
-}
-
-.btn-text {
-  color: #fff;
-  font-size: 26rpx;
   font-weight: 500;
-  white-space: nowrap;
-}
-
-.btn-arrow {
-  color: #fff;
-  font-size: 26rpx;
-}
-
-/* 内容 Banner */
-.content-banner-section {
-  margin: 0 32rpx;
-  border-radius: 24rpx;
-  overflow: hidden;
-}
-
-.content-swiper {
-  width: 100%;
-  height: 240rpx;
-}
-
-.content-banner {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  border-radius: 24rpx;
-  position: relative;
-}
-
-.content-banner-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 32rpx;
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 100%);
-}
-
-.content-banner-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #fff;
-}
-
-.content-banner-desc {
-  font-size: 24rpx;
-  color: rgba(255,255,255,0.85);
-  margin-top: 6rpx;
+  color: $zb-text-primary;
 }
 
 /* 通用 Section */
@@ -704,242 +630,128 @@ const addToCart = (item: any) => {
   font-size: 28rpx;
 }
 
-/* 我的健康 - 4 按钮组 */
-.health-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
+/* 健康数据 */
+.data-content {
+  display: flex;
+  gap: 20rpx;
 }
 
-.health-item {
+.device-card {
+  width: 280rpx;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20rpx 8rpx;
-  background: $zb-bg-grey;
-  border-radius: 16rpx;
+  padding: 24rpx;
+  background: linear-gradient(160deg, #0f766e 0%, #134e4a 100%);
+  border-radius: 20rpx;
 }
 
-.health-icon-wrap {
-  width: 72rpx;
-  height: 72rpx;
+.device-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.device-tag {
+  align-self: flex-start;
+  margin-top: 10rpx;
+  padding: 2rpx 12rpx;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 8rpx;
+  font-size: 18rpx;
+  color: #a7f3ea;
+}
+
+.device-watch {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: 50%;
-  margin-bottom: 12rpx;
-  box-shadow: $zb-shadow-sm;
+  font-size: 88rpx;
+  padding: 16rpx 0;
 }
 
-.health-icon {
-  font-size: 32rpx;
-}
-
-.health-name {
-  font-size: 24rpx;
-  font-weight: 500;
-  color: $zb-text-regular;
-}
-
-.health-desc {
-  font-size: 20rpx;
-  color: $zb-text-tertiary;
-  margin-top: 4rpx;
-}
-
-/* 会员权益 */
-.member-content {
+.device-stats {
   display: flex;
-  gap: 20rpx;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.member-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.member-item {
+.ds-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid $zb-border-light;
-  
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.member-item-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.member-item-name {
-  font-size: 28rpx;
-  font-weight: 500;
-  color: $zb-text-regular;
-}
-
-.member-item-desc {
+  gap: 6rpx;
   font-size: 22rpx;
-  color: $zb-text-tertiary;
-  margin-top: 4rpx;
 }
 
-.member-item-arrow {
-  font-size: 32rpx;
-  color: $zb-text-tertiary;
-}
-
-.member-card {
-  width: 200rpx;
-  height: 200rpx;
-  background: linear-gradient(135deg, #2ec4b6 0%, #3b82f6 100%);
-  border-radius: 20rpx;
-  position: relative;
-  overflow: hidden;
-  padding: 20rpx;
-}
-
-.card-decoration {
-  position: absolute;
-  top: -40rpx;
-  right: -40rpx;
-  width: 120rpx;
-  height: 120rpx;
-  background: rgba(255,255,255,0.15);
-  border-radius: 50%;
-}
-
-.card-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  height: 100%;
-}
-
-.card-title {
-  font-size: 24rpx;
-  font-weight: 600;
+.ds-value {
+  font-size: 28rpx;
+  font-weight: 700;
   color: #fff;
 }
 
-.card-sub {
+.ds-label {
   font-size: 20rpx;
-  color: rgba(255,255,255,0.8);
-  margin-top: 4rpx;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.card-btn {
-  margin-top: 12rpx;
-  padding: 6rpx 16rpx;
-  background: rgba(255,255,255,0.25);
-  border-radius: 8rpx;
-  font-size: 20rpx;
-  color: #fff;
-  text-align: center;
+.metric-grid {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
 }
 
-/* 活动优惠 */
-.activity-list {
+.metric-card {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
-}
-
-.activity-card {
-  display: flex;
-  gap: 20rpx;
-  padding: 20rpx;
+  justify-content: space-between;
+  gap: 14rpx;
+  padding: 18rpx;
   background: $zb-bg-grey;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
 }
 
-.activity-image {
-  width: 180rpx;
-  height: 180rpx;
-  border-radius: 16rpx;
-  background-size: cover;
-  background-position: center;
-  position: relative;
+.metric-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.metric-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
   flex-shrink: 0;
 }
 
-.activity-tag {
-  position: absolute;
-  top: 12rpx;
-  left: 0;
-  padding: 4rpx 12rpx;
-  background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
-  color: #fff;
-  font-size: 20rpx;
-  border-radius: 0 12rpx 12rpx 0;
+.metric-name {
+  font-size: 22rpx;
+  color: $zb-text-tertiary;
 }
 
-.activity-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.activity-type {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: $zb-text-primary;
-}
-
-.activity-desc {
-  font-size: 24rpx;
-  color: $zb-text-secondary;
-  margin: 8rpx 0;
-  flex: 1;
-}
-
-.activity-price-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.price-wrap {
+.metric-value-row {
   display: flex;
   align-items: baseline;
-  gap: 8rpx;
 }
 
-.currency {
-  font-size: 22rpx;
-  color: #ff4d4f;
-  font-weight: 500;
-}
-
-.price {
-  font-size: 36rpx;
-  color: #ff4d4f;
+.metric-value {
+  font-size: 32rpx;
   font-weight: 700;
 }
 
-.original-price {
-  font-size: 22rpx;
+.metric-unit {
+  margin-left: 4rpx;
+  font-size: 18rpx;
   color: $zb-text-tertiary;
-  text-decoration: line-through;
 }
 
-.activity-btn {
-  padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, $zb-primary 0%, lighten($zb-primary, 8%) 100%);
-  color: #fff;
-  font-size: 24rpx;
-  border-radius: 24rpx;
-}
-
-/* 商城 */
+/* 健康产品 */
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -958,6 +770,18 @@ const addToCart = (item: any) => {
   background-size: cover;
   background-position: center;
   background-color: #fff;
+  position: relative;
+}
+
+.shop-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 0;
+  padding: 4rpx 14rpx;
+  background: linear-gradient(90deg, #ff6b35 0%, #ff4d4f 100%);
+  color: #fff;
+  font-size: 18rpx;
+  border-radius: 0 12rpx 12rpx 0;
 }
 
 .shop-info {
@@ -990,6 +814,25 @@ const addToCart = (item: any) => {
 .shop-price {
   display: flex;
   align-items: baseline;
+  gap: 6rpx;
+}
+
+.currency {
+  font-size: 22rpx;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.price {
+  font-size: 36rpx;
+  color: #ff4d4f;
+  font-weight: 700;
+}
+
+.original-price {
+  font-size: 20rpx;
+  color: $zb-text-tertiary;
+  text-decoration: line-through;
 }
 
 .shop-cart {
@@ -1002,6 +845,7 @@ const addToCart = (item: any) => {
   border-radius: 50%;
   font-size: 28rpx;
   box-shadow: $zb-shadow-sm;
+  flex-shrink: 0;
 }
 
 /* 门店 */
@@ -1038,7 +882,7 @@ const addToCart = (item: any) => {
 .pin {
   position: absolute;
   font-size: 28rpx;
-  
+
   text {
     margin-left: 4rpx;
     font-size: 20rpx;
@@ -1119,6 +963,32 @@ const addToCart = (item: any) => {
 }
 
 /* 健康资讯 */
+.news-tabs {
+  margin-bottom: 24rpx;
+  white-space: nowrap;
+}
+
+.tabs-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.news-tab {
+  padding: 10rpx 30rpx;
+  background: $zb-bg-grey;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  color: $zb-text-secondary;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.news-tab.active {
+  background: linear-gradient(135deg, $zb-primary 0%, lighten($zb-primary, 8%) 100%);
+  color: #fff;
+  font-weight: 600;
+}
+
 .news-list {
   display: flex;
   flex-direction: column;
