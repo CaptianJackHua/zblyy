@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>中兵康养 · 商城后台管理系统</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <!-- 登录 -->
+  <div id="login" class="login">
+    <div class="login-left">
+      <div class="brand">
+        <div class="brand-logo">中</div>
+        <div>
+          <div class="brand-name">中兵康养</div>
+          <div class="brand-en">ZHONGBING WELLNESS</div>
+        </div>
+      </div>
+      <h1>商城后台管理系统</h1>
+      <p>商品、订单、会员、积分、门店与内容的一体化运营平台</p>
+      <ul class="login-points">
+        <li>实时掌握销售与订单数据</li>
+        <li>商品与库存集中管理</li>
+        <li>会员积分与权益运营</li>
+      </ul>
+      <div class="login-deco d1"></div>
+      <div class="login-deco d2"></div>
+    </div>
+    <div class="login-right">
+      <form id="login-form" class="login-card" autocomplete="off">
+        <h2>账号登录</h2>
+        <p class="login-sub">请使用管理员账号登录后台</p>
+        <label class="field">
+          <span>账号</span>
+          <input id="login-user" type="text" value="admin" placeholder="请输入账号" />
+        </label>
+        <label class="field">
+          <span>密码</span>
+          <input id="login-pass" type="password" value="123456" placeholder="请输入密码" />
+        </label>
+        <div id="login-error" class="login-error"></div>
+        <button type="submit" class="btn btn-primary btn-block">登 录</button>
+        <p class="login-hint">演示账号：admin　密码：123456</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 主体 -->
+  <div id="app" class="layout hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="brand-logo sm">中</div>
+        <div class="side-brand-text">
+          <div class="side-brand-name">中兵康养</div>
+          <div class="side-brand-sub">商城后台</div>
+        </div>
+      </div>
+      <nav id="nav" class="nav"></nav>
+      <div class="side-foot">
+        <div class="side-user">
+          <div class="avatar">A</div>
+          <div>
+            <div class="side-user-name">管理员</div>
+            <div class="side-user-role">超级管理员</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="crumb">
+          <span id="crumb-group">概览</span>
+          <span class="crumb-sep">/</span>
+          <span id="crumb-page">数据概览</span>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-date" id="topbar-date"></span>
+          <button class="btn btn-ghost btn-sm" id="btn-logout">退出登录</button>
+        </div>
+      </header>
+      <main id="view" class="view"></main>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast" class="toast"></div>
+
+  <script src="./assets/data.js"></script>
+  <script src="./assets/core.js"></script>
+  <script src="./assets/views1.js"></script>
+  <script src="./assets/views2.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>
