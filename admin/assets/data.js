@@ -157,6 +157,7 @@
   window.ZBSeed = {
     products: products,
     orders: orders,
+    outbounds: [],
     members: members,
     coupons: coupons,
     gifts: gifts,

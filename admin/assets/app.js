@@ -11,6 +11,7 @@
       group: '交易管理',
       items: [
         { key: 'orders', label: '订单管理', icon: 'order' },
+        { key: 'outbounds', label: '出库管理', icon: 'product' },
         { key: 'coupons', label: '优惠券', icon: 'coupon' }
       ]
     },
@@ -52,6 +53,7 @@
   }
 
   function renderNav() {
+    const paid = window.ZBBridge ? window.ZBBridge.paidCount() : 0;
     document.getElementById('nav').innerHTML = MENU.map(
       (g) =>
         '<div class="nav-group">' + g.group + '</div>' +
@@ -59,7 +61,9 @@
           .map(
             (it) =>
               '<div class="nav-item' + (it.key === current ? ' active' : '') + '" data-nav="' + it.key + '">' +
-              ZB.icon(it.icon) + '<span>' + it.label + '</span></div>'
+              ZB.icon(it.icon) + '<span>' + it.label + '</span>' +
+              (it.key === 'orders' && paid ? '<span class="nav-badge">' + paid + '</span>' : '') +
+              '</div>'
           )
           .join('')
     ).join('');
@@ -88,6 +92,7 @@
       return;
     }
     current = key;
+    if (key === 'orders' && window.ZBBridge) window.ZBBridge.pullOrders();
     document.getElementById('crumb-group').textContent = page.group;
     document.getElementById('crumb-page').textContent = page.title;
     renderNav();
@@ -105,7 +110,9 @@
   function showApp() {
     document.getElementById('login').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
+    const added = window.ZBBridge ? window.ZBBridge.pullOrders() : 0;
     renderPage(readHash());
+    if (added) ZB.toast('收到 ' + added + ' 笔小程序新订单');
   }
 
   function showLogin() {
@@ -148,6 +155,7 @@
 
   /* ---------- 初始化 ---------- */
   ZB.load();
+  if (window.ZBBridge) window.ZBBridge.publishProducts();
   ZB.setRefresh(() => renderPage(current));
 
   const week = ['日', '一', '二', '三', '四', '五', '六'];

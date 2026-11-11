@@ -32,6 +32,16 @@
       const waitShip = orders.filter((o) => o.status === 'paid').length;
       const members = db().members;
 
+      const noticeHtml = waitShip
+        ? '<div class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:14px 20px;' +
+          'border-left:3px solid #2ec4b6">' +
+          '<div style="width:32px;height:32px;border-radius:9px;background:#e8f8f6;color:#1fa79b;display:flex;' +
+          'align-items:center;justify-content:center">' + icon('order') + '</div>' +
+          '<div style="flex:1"><div style="font-size:13.5px;font-weight:600">有 ' + waitShip + ' 笔已付款订单待发货</div>' +
+          '<div style="font-size:12px;color:#93a1b0;margin-top:3px">客户已完成支付，请尽快打包并提交销售出库单</div></div>' +
+          '<button class="btn btn-primary btn-sm" data-act="go" data-page="orders">去处理</button></div>'
+        : '';
+
       const kpis = [
         { label: '累计销售额', value: money(sales), foot: '今日 ' + money(todaySales), icon: 'coupon' },
         { label: '订单总数', value: num(orders.length), foot: '待发货 ' + waitShip + ' 单', icon: 'order' },
@@ -106,6 +116,7 @@
       );
 
       return (
+        noticeHtml +
         kpiHtml +
         '<div class="grid-2"><div class="card"><div class="card-head"><div class="card-title">近 7 日销售额<small>单位：元</small></div></div>' +
         ZB.lineChart(points) +
@@ -139,6 +150,33 @@
     { key: 'cancelled', label: '已取消' }
   ];
 
+  const SHIP_COMPANIES = ['顺丰速运', '京东物流', '中通快递', '圆通速递', '韵达快递', '邮政EMS'];
+
+  /* 发货：填写物流 → 生成销售出库单 → 扣减库存 → 同步小程序 */
+  function shipModal(order) {
+    const defaultNo = 'SF' + String(Date.now()).slice(-12);
+    ZB.formModal(
+      '订单发货 · ' + order.no,
+      [
+        {
+          key: 'company',
+          label: '物流公司',
+          type: 'select',
+          options: SHIP_COMPANIES.map((c) => ({ value: c, label: c }))
+        },
+        { key: 'trackingNo', label: '物流单号', required: true, full: true, placeholder: '请输入运单号' },
+        { key: 'remark', label: '出库备注', full: true, placeholder: '选填，如：顺丰标快 / 保价' }
+      ],
+      { company: '顺丰速运', trackingNo: defaultNo, remark: '' },
+      (v) => {
+        const rec = window.ZBBridge.ship(order, v);
+        ZB.closeModal();
+        ZB.toast('已提交出库单 ' + rec.no + '，库存已扣减');
+        refresh();
+      }
+    );
+  }
+
   function viewOrder(id) {
     const o = db().orders.find((x) => x.id === id);
     if (!o) return;
@@ -159,12 +197,19 @@
       '<div class="detail-row"><span class="detail-label">会员</span><span class="detail-value">' + esc(o.user) + '　' + esc(o.phone) + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">收货地址</span><span class="detail-value">' + esc(o.address) + '</span></div>' +
       '<div class="detail-row"><span class="detail-label">支付方式</span><span class="detail-value">' + esc(o.payMethod) + '</span></div>' +
+      (o.logistics
+        ? '<div class="section-title">物流信息</div>' +
+          '<div class="detail-row"><span class="detail-label">物流公司</span><span class="detail-value">' + esc(o.logistics.company) + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">物流单号</span><span class="detail-value">' + esc(o.logistics.no) + '</span></div>' +
+          '<div class="detail-row"><span class="detail-label">发货时间</span><span class="detail-value">' + ZB.fmtTime(o.logistics.time) + '</span></div>' +
+          (o.outboundNo ? '<div class="detail-row"><span class="detail-label">出库单号</span><span class="detail-value">' + esc(o.outboundNo) + '</span></div>' : '')
+        : '') +
       '<div class="section-title">商品清单</div>' + goods +
       '<div class="detail-row" style="margin-top:10px"><span class="detail-label">合计金额</span>' +
       '<span class="detail-value" style="color:#e2452f;font-weight:700">' + money(o.total) + '</span></div>';
 
     let foot = '<button class="btn btn-ghost" data-close>关闭</button>';
-    if (o.status === 'paid') foot += '<button class="btn btn-primary" id="op-ship">发货</button>';
+    if (o.status === 'paid') foot += '<button class="btn btn-primary" id="op-ship">发货 · 出库</button>';
     if (o.status === 'shipped') foot += '<button class="btn btn-primary" id="op-done">确认完成</button>';
     if (o.status === 'pending') foot += '<button class="btn btn-danger" id="op-cancel">关闭订单</button>';
 
@@ -175,13 +220,7 @@
       foot: foot,
       onMount(root) {
         const ship = root.querySelector('#op-ship');
-        if (ship) ship.onclick = () => {
-          o.status = 'shipped';
-          ZB.save();
-          ZB.closeModal();
-          ZB.toast('订单 ' + o.no + ' 已发货');
-          refresh();
-        };
+        if (ship) ship.onclick = () => shipModal(o);
         const done = root.querySelector('#op-done');
         if (done) done.onclick = () => {
           o.status = 'done';
@@ -233,6 +272,14 @@
         { title: '金额', cls: 'td-money', render: (o) => money(o.total) },
         { title: '支付方式', cls: 'td-muted', render: (o) => esc(o.payMethod) },
         { title: '状态', render: (o) => ZB.orderPill(o.status) },
+        {
+          title: '物流',
+          cls: 'td-muted',
+          render: (o) =>
+            o.logistics
+              ? '<div>' + esc(o.logistics.company) + '</div><div class="cell-sub">' + esc(o.logistics.no) + '</div>'
+              : '<span style="color:#c8d2db">未发货</span>'
+        },
         { title: '下单时间', cls: 'td-muted td-nowrap', render: (o) => ZB.fmtTime(o.createdAt) },
         {
           title: '操作',
@@ -277,12 +324,7 @@
       document.querySelectorAll('[data-act="ship"]').forEach((el) => {
         el.onclick = () => {
           const o = db().orders.find((x) => x.id === el.dataset.id);
-          ZB.confirm('订单发货', '确认订单 ' + o.no + ' 已发货？', () => {
-            o.status = 'shipped';
-            ZB.save();
-            ZB.toast('已标记发货');
-            refresh();
-          });
+          shipModal(o);
         };
       });
       document.querySelectorAll('[data-act="done"]').forEach((el) => {
@@ -434,6 +476,7 @@
         Object.assign(item, v);
       }
       ZB.save();
+      if (window.ZBBridge) window.ZBBridge.publishProducts();
       ZB.closeModal();
       ZB.toast(isNew ? '商品已新增' : '商品已保存');
       refresh();
@@ -523,6 +566,7 @@
           const p = db().products.find((x) => x.id === Number(el.dataset.id));
           p.status = p.status === 'on' ? 'off' : 'on';
           ZB.save();
+          if (window.ZBBridge) window.ZBBridge.publishProducts();
           ZB.toast(p.status === 'on' ? '商品已上架' : '商品已下架');
           refresh();
         };
@@ -533,6 +577,7 @@
           ZB.confirm('删除商品', '确定删除「' + p.name + '」？', () => {
             db().products = db().products.filter((x) => x.id !== p.id);
             ZB.save();
+            if (window.ZBBridge) window.ZBBridge.publishProducts();
             ZB.toast('已删除');
             refresh();
           });
@@ -711,6 +756,79 @@
           ZB.toast(t.enabled ? '任务已启用' : '任务已停用');
           refresh();
         };
+      });
+    }
+  };
+
+  /* ================= 出库管理（销售出库单） ================= */
+  function viewOutbound(id) {
+    const b = (db().outbounds || []).find((x) => x.id === id);
+    if (!b) return;
+    const goods = b.items
+      .map(
+        (it) =>
+          '<div class="order-goods">' + ZB.thumb('#0f9b8e', it.name.slice(0, 1)) +
+          '<div class="order-goods-info"><div class="order-goods-name">' + esc(it.name) + '</div>' +
+          '<div class="order-goods-spec">' + esc(it.spec) + ' × ' + it.qty + '</div></div>' +
+          '<div class="order-goods-price">' + money(it.price * it.qty) + '</div></div>'
+      )
+      .join('');
+
+    ZB.modal({
+      title: '销售出库单',
+      wide: true,
+      body:
+        '<div class="detail-row"><span class="detail-label">出库单号</span><span class="detail-value">' + b.no + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">关联订单</span><span class="detail-value">' + esc(b.orderNo) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">物流公司</span><span class="detail-value">' + esc(b.company) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">物流单号</span><span class="detail-value">' + esc(b.trackingNo) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">出库件数</span><span class="detail-value">' + b.qty + ' 件</span></div>' +
+        '<div class="detail-row"><span class="detail-label">订单金额</span><span class="detail-value">' + money(b.amount) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">操作人</span><span class="detail-value">' + esc(b.operator) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">出库时间</span><span class="detail-value">' + ZB.fmtTime(b.createdAt) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">备注</span><span class="detail-value">' + esc(b.remark || '—') + '</span></div>' +
+        '<div class="section-title">出库商品</div>' + goods,
+      foot: '<button class="btn btn-ghost" data-close>关闭</button>'
+    });
+  }
+
+  ZB.pages.outbounds = {
+    group: '交易管理',
+    title: '出库管理',
+    render() {
+      const rows = (db().outbounds || []).slice().sort((a, b) => b.createdAt - a.createdAt);
+      const cols = [
+        {
+          title: '出库单号',
+          render: (b) =>
+            '<div class="td-strong">' + b.no + '</div><div class="cell-sub">订单 ' + esc(b.orderNo) + '</div>'
+        },
+        {
+          title: '出库商品',
+          render: (b) =>
+            '<div>' + esc(b.items[0] ? b.items[0].name : '—') + (b.items.length > 1 ? ' 等 ' + b.items.length + ' 种' : '') +
+            '</div><div class="cell-sub">共 ' + b.qty + ' 件</div>'
+        },
+        { title: '物流', render: (b) => '<div>' + esc(b.company) + '</div><div class="cell-sub">' + esc(b.trackingNo) + '</div>' },
+        { title: '订单金额', cls: 'td-money', render: (b) => money(b.amount) },
+        { title: '操作人', cls: 'td-muted', render: (b) => esc(b.operator) },
+        { title: '出库时间', cls: 'td-muted td-nowrap', render: (b) => ZB.fmtTime(b.createdAt) },
+        {
+          title: '操作',
+          render: (b) => '<span class="link-btn" data-act="bview" data-id="' + b.id + '">详情</span>'
+        }
+      ];
+      return (
+        '<div class="card"><div class="table-toolbar">' +
+        '<div class="card-title">销售出库单<small>发货时自动生成，库存同步扣减</small></div></div>' +
+        table(cols, rows, '暂无出库单，订单发货后会自动生成') +
+        '<div class="table-foot"><span>共 ' + rows.length + ' 张出库单</span><span>累计出库 ' +
+        rows.reduce((s, b) => s + b.qty, 0) + ' 件</span></div></div>'
+      );
+    },
+    after() {
+      document.querySelectorAll('[data-act="bview"]').forEach((el) => {
+        el.onclick = () => viewOutbound(el.dataset.id);
       });
     }
   };
