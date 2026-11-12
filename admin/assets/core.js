@@ -12,6 +12,13 @@ window.ZB = (function () {
       const raw = localStorage.getItem(DB_KEY);
       if (raw) {
         db = JSON.parse(raw);
+        // 数据迁移：补齐旧版本缺失的集合，避免新增模块无数据
+        const seed = window.ZBSeed;
+        Object.keys(seed).forEach((k) => {
+          if (db[k] === undefined) {
+            db[k] = clone(seed[k]);
+          }
+        });
         return db;
       }
     } catch (e) {

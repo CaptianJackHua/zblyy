@@ -11,6 +11,7 @@
       group: '交易管理',
       items: [
         { key: 'orders', label: '订单管理', icon: 'order' },
+        { key: 'aftersales', label: '售后管理', icon: 'message' },
         { key: 'outbounds', label: '出库管理', icon: 'product' },
         { key: 'coupons', label: '优惠券', icon: 'coupon' }
       ]
@@ -93,6 +94,7 @@
     }
     current = key;
     if (key === 'orders' && window.ZBBridge) window.ZBBridge.pullOrders();
+    if (key === 'aftersales' && window.ZBBridge) window.ZBBridge.pullAftersales();
     document.getElementById('crumb-group').textContent = page.group;
     document.getElementById('crumb-page').textContent = page.title;
     renderNav();
@@ -111,8 +113,10 @@
     document.getElementById('login').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     const added = window.ZBBridge ? window.ZBBridge.pullOrders() : 0;
+    const asAdded = window.ZBBridge ? window.ZBBridge.pullAftersales() : 0;
     renderPage(readHash());
     if (added) ZB.toast('收到 ' + added + ' 笔小程序新订单');
+    if (asAdded) setTimeout(() => ZB.toast('收到 ' + asAdded + ' 笔售后申请'), 1500);
   }
 
   function showLogin() {

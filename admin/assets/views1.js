@@ -833,6 +833,227 @@
     }
   };
 
+  /* ================= 售后管理 ================= */
+  const AS_TYPE = { refund_only: { text: '仅退款', cls: 'pill-blue' }, return_refund: { text: '退货退款', cls: 'pill-orange' }, exchange: { text: '换货', cls: 'pill-purple' } };
+  const AS_STATUS = {
+    pending: { text: '待审核', cls: 'pill-orange' },
+    approved: { text: '已通过', cls: 'pill-blue' },
+    buyer_shipped: { text: '买家已寄出', cls: 'pill-purple' },
+    received: { text: '商家已收货', cls: 'pill-teal' },
+    done: { text: '已完成', cls: 'pill-green' },
+    rejected: { text: '已拒绝', cls: 'pill-red' },
+    cancelled: { text: '已取消', cls: 'pill-gray' }
+  };
+
+  const asTypePill = (t) => { const m = AS_TYPE[t] || { text: t, cls: 'pill-gray' }; return pill(m.text, m.cls); };
+  const asStatusPill = (s) => { const m = AS_STATUS[s] || { text: s, cls: 'pill-gray' }; return pill(m.text, m.cls); };
+
+  function approveModal(a) {
+    ZB.formModal(
+      '同意售后申请',
+      [{ key: 'reply', label: '审核回复', full: true, placeholder: '如：同意退货退款，请尽快寄回商品。' }],
+      {},
+      (v) => {
+        window.ZBBridge.approveAftersale(a, v.reply);
+        ZB.closeModal();
+        ZB.toast(a.type === 'refund_only' ? '已同意并完成退款' : '已同意，请等待买家寄回');
+        refresh();
+      }
+    );
+  }
+
+  function rejectModal(a) {
+    ZB.formModal(
+      '拒绝售后申请',
+      [{ key: 'reply', label: '拒绝原因', required: true, full: true, placeholder: '请说明拒绝原因' }],
+      {},
+      (v) => {
+        window.ZBBridge.rejectAftersale(a, v.reply);
+        ZB.closeModal();
+        ZB.toast('已拒绝该申请');
+        refresh();
+      }
+    );
+  }
+
+  function exchangeModal(a) {
+    ZB.formModal(
+      '发出换货商品',
+      [
+        { key: 'company', label: '物流公司', type: 'select', options: ['顺丰速运', '京东物流', '中通快递', '圆通速递', '韵达快递', '邮政EMS'].map((c) => ({ value: c, label: c })) },
+        { key: 'no', label: '物流单号', required: true, full: true }
+      ],
+      { company: '顺丰速运', no: 'SF' + String(Date.now()).slice(-12) },
+      (v) => {
+        window.ZBBridge.exchangeAftersale(a, v.company, v.no);
+        ZB.closeModal();
+        ZB.toast('换货商品已发出');
+        refresh();
+      }
+    );
+  }
+
+  function viewAftersale(id) {
+    const a = db().aftersales.find((x) => x.id === id);
+    if (!a) return;
+    const goods = a.items
+      .map(
+        (it) =>
+          '<div class="order-goods">' + ZB.thumb(it.color, it.name.slice(0, 1)) +
+          '<div class="order-goods-info"><div class="order-goods-name">' + esc(it.name) + '</div>' +
+          '<div class="order-goods-spec">' + esc(it.spec) + ' × ' + it.qty + '</div></div>' +
+          '<div class="order-goods-price">' + money(it.price * it.qty) + '</div></div>'
+      )
+      .join('');
+
+    const timeline =
+      '<div class="timeline">' +
+      '<div class="tl-node done">提交申请<span>' + ZB.fmtTime(a.createdAt) + '</span></div>' +
+      (a.status === 'rejected'
+        ? '<div class="tl-node done">商家拒绝<span>' + esc(a.auditReply || '') + '</span></div>'
+        : a.status === 'cancelled'
+        ? '<div class="tl-node done">已取消</div>'
+        : '<div class="tl-node ' + (a.status !== 'pending' ? 'done' : 'current') + '">商家审核' +
+          (a.auditReply ? '<span>' + esc(a.auditReply) + '</span>' : '') + '</div>' +
+          (a.type !== 'refund_only'
+            ? '<div class="tl-node ' + (['buyer_shipped', 'received', 'done'].includes(a.status) ? 'done' : '') + '">买家寄回' +
+              (a.returnLogistics ? '<span>' + esc(a.returnLogistics.company) + ' ' + esc(a.returnLogistics.no) + '</span>' : '') + '</div>' +
+              '<div class="tl-node ' + (['received', 'done'].includes(a.status) ? 'done' : '') + '">商家收货</div>'
+            : '') +
+          '<div class="tl-node ' + (a.status === 'done' ? 'done' : '') + '">' +
+          (a.type === 'exchange' ? '换出商品' : '退款完成') +
+          (a.exchangeLogistics ? '<span>' + esc(a.exchangeLogistics.company) + ' ' + esc(a.exchangeLogistics.no) + '</span>' : '') +
+          '</div>') +
+      '</div>';
+
+    const body =
+      timeline +
+      '<div class="detail-row"><span class="detail-label">售后单号</span><span class="detail-value">' + a.no + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">关联订单</span><span class="detail-value">' + esc(a.orderNo) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">申请人</span><span class="detail-value">' + esc(a.member) + '　' + esc(a.phone) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">售后类型</span><span class="detail-value">' + asTypePill(a.type) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">申请状态</span><span class="detail-value">' + asStatusPill(a.status) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">申请金额</span><span class="detail-value" style="color:#e2452f;font-weight:700">' + money(a.amount) + '</span></div>' +
+      '<div class="detail-row"><span class="detail-label">申请原因</span><span class="detail-value">' + esc(a.reason) + '</span></div>' +
+      (a.description ? '<div class="detail-row"><span class="detail-label">问题描述</span><span class="detail-value">' + esc(a.description) + '</span></div>' : '') +
+      '<div class="section-title">售后商品</div>' + goods;
+
+    let foot = '<button class="btn btn-ghost" data-close>关闭</button>';
+    if (a.status === 'pending') {
+      foot += '<button class="btn btn-danger" id="as-reject">拒绝</button>';
+      foot += '<button class="btn btn-primary" id="as-approve">同意</button>';
+    }
+    if (a.status === 'buyer_shipped') foot += '<button class="btn btn-primary" id="as-receive">确认收货</button>';
+    if (a.status === 'received' && a.type === 'return_refund') foot += '<button class="btn btn-primary" id="as-refund">确认退款</button>';
+    if (a.status === 'received' && a.type === 'exchange') foot += '<button class="btn btn-primary" id="as-exchange">发出换货</button>';
+
+    ZB.modal({
+      title: '售后详情',
+      wide: true,
+      body: body,
+      foot: foot,
+      onMount(root) {
+        const ap = root.querySelector('#as-approve');
+        if (ap) ap.onclick = () => { ZB.closeModal(); approveModal(a); };
+        const rj = root.querySelector('#as-reject');
+        if (rj) rj.onclick = () => { ZB.closeModal(); rejectModal(a); };
+        const rc = root.querySelector('#as-receive');
+        if (rc) rc.onclick = () => {
+          window.ZBBridge.receiveAftersale(a);
+          ZB.closeModal();
+          ZB.toast('已确认收货');
+          refresh();
+        };
+        const rf = root.querySelector('#as-refund');
+        if (rf) rf.onclick = () => {
+          window.ZBBridge.refundAftersale(a);
+          ZB.closeModal();
+          ZB.toast('退款已完成，库存已回补');
+          refresh();
+        };
+        const ex = root.querySelector('#as-exchange');
+        if (ex) ex.onclick = () => { ZB.closeModal(); exchangeModal(a); };
+      }
+    });
+  }
+
+  ZB.pages.aftersales = {
+    group: '交易管理',
+    title: '售后管理',
+    render() {
+      const rows = (db().aftersales || []).slice().sort((a, b) => b.createdAt - a.createdAt);
+      const cols = [
+        {
+          title: '售后单',
+          render: (a) => '<div class="td-strong">' + a.no + '</div><div class="cell-sub">订单 ' + esc(a.orderNo) + '</div>'
+        },
+        { title: '类型', render: (a) => asTypePill(a.type) },
+        {
+          title: '申请人',
+          render: (a) => '<div><div>' + esc(a.member) + '</div><div class="cell-sub">' + esc(a.phone) + '</div></div>'
+        },
+        {
+          title: '售后商品',
+          render: (a) =>
+            '<div>' + esc(a.items[0] ? a.items[0].name : '—') + (a.items.length > 1 ? ' 等 ' + a.items.length + ' 种' : '') +
+            '</div><div class="cell-sub">' + esc(a.reason) + '</div>'
+        },
+        { title: '退款金额', cls: 'td-money', render: (a) => money(a.amount) },
+        { title: '状态', render: (a) => asStatusPill(a.status) },
+        { title: '申请时间', cls: 'td-muted td-nowrap', render: (a) => ZB.fmtTime(a.createdAt) },
+        {
+          title: '操作',
+          cls: 'td-nowrap',
+          render: (a) => {
+            let acts = '<span class="link-btn" data-act="asview" data-id="' + a.id + '">详情</span>';
+            if (a.status === 'pending') {
+              acts += '<span class="link-btn" data-act="asapprove" data-id="' + a.id + '">同意</span>';
+              acts += '<span class="link-btn danger" data-act="asreject" data-id="' + a.id + '">拒绝</span>';
+            }
+            if (a.status === 'buyer_shipped') acts += '<span class="link-btn" data-act="asreceive" data-id="' + a.id + '">收货</span>';
+            if (a.status === 'received' && a.type === 'return_refund') acts += '<span class="link-btn" data-act="asrefund" data-id="' + a.id + '">退款</span>';
+            if (a.status === 'received' && a.type === 'exchange') acts += '<span class="link-btn" data-act="asexchange" data-id="' + a.id + '">换货</span>';
+            return acts;
+          }
+        }
+      ];
+      return (
+        '<div class="card"><div class="table-toolbar">' +
+        '<div class="card-title">售后申请<small>仅退款 / 退货退款 / 换货</small></div></div>' +
+        table(cols, rows, '暂无售后申请') +
+        '<div class="table-foot"><span>共 ' + rows.length + ' 条</span><span>待审核 ' + rows.filter((a) => a.status === 'pending').length + ' 条</span></div></div>'
+      );
+    },
+    after() {
+      document.querySelectorAll('[data-act="asview"]').forEach((el) => (el.onclick = () => viewAftersale(el.dataset.id)));
+      document.querySelectorAll('[data-act="asapprove"]').forEach((el) => {
+        el.onclick = () => { const a = db().aftersales.find((x) => x.id === el.dataset.id); approveModal(a); };
+      });
+      document.querySelectorAll('[data-act="asreject"]').forEach((el) => {
+        el.onclick = () => { const a = db().aftersales.find((x) => x.id === el.dataset.id); rejectModal(a); };
+      });
+      document.querySelectorAll('[data-act="asreceive"]').forEach((el) => {
+        el.onclick = () => {
+          const a = db().aftersales.find((x) => x.id === el.dataset.id);
+          window.ZBBridge.receiveAftersale(a);
+          ZB.toast('已确认收货');
+          refresh();
+        };
+      });
+      document.querySelectorAll('[data-act="asrefund"]').forEach((el) => {
+        el.onclick = () => {
+          const a = db().aftersales.find((x) => x.id === el.dataset.id);
+          window.ZBBridge.refundAftersale(a);
+          ZB.toast('退款已完成，库存已回补');
+          refresh();
+        };
+      });
+      document.querySelectorAll('[data-act="asexchange"]').forEach((el) => {
+        el.onclick = () => { const a = db().aftersales.find((x) => x.id === el.dataset.id); exchangeModal(a); };
+      });
+    }
+  };
+
   /* 供概览页跳转调用 */
   ZB.viewOrder = viewOrder;
 })();
