@@ -243,7 +243,7 @@
   }
 
   ZB.pages.orders = {
-    group: '交易管理',
+    group: '商城管理',
     title: '订单管理',
     render() {
       const st = ZB.state.orders;
@@ -381,7 +381,7 @@
   }
 
   ZB.pages.coupons = {
-    group: '交易管理',
+    group: '商城管理',
     title: '优惠券',
     render() {
       const rows = db().coupons;
@@ -484,7 +484,7 @@
   }
 
   ZB.pages.products = {
-    group: '商品管理',
+    group: '商城管理',
     title: '商品管理',
     render() {
       const st = ZB.state.products;
@@ -682,7 +682,7 @@
   }
 
   ZB.pages['points-shop'] = {
-    group: '商品管理',
+    group: '商城管理',
     title: '积分商城',
     render() {
       const st = ZB.state.points;
@@ -793,7 +793,7 @@
   }
 
   ZB.pages.outbounds = {
-    group: '交易管理',
+    group: '商城管理',
     title: '出库管理',
     render() {
       const rows = (db().outbounds || []).slice().sort((a, b) => b.createdAt - a.createdAt);
@@ -978,7 +978,7 @@
   }
 
   ZB.pages.aftersales = {
-    group: '交易管理',
+    group: '商城管理',
     title: '售后管理',
     render() {
       const rows = (db().aftersales || []).slice().sort((a, b) => b.createdAt - a.createdAt);

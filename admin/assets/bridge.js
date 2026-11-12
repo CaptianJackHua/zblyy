@@ -5,6 +5,14 @@ window.ZBBridge = (function () {
   const PRODUCT_KEY = 'zb-shop-products'; // 后台写入的商品与库存
   const AFTERSALE_KEY = 'zb-shop-aftersales'; // 小程序写入的售后申请
   const AFTERSALE_STATUS_KEY = 'zb-shop-aftersales-status'; // 后台写入的售后状态
+  const ARTICLE_KEY = 'zb-shop-articles'; // 后台写入的文章（健康资讯）
+  const SERVICE_KEY = 'zb-shop-services'; // 后台写入的到店服务项目
+  const STORE_KEY = 'zb-shop-stores'; // 后台写入的门店数据
+  const EXPERT_KEY = 'zb-shop-experts'; // 后台写入的专家数据
+  const SERVICE_ORDER_KEY = 'zb-shop-service-orders'; // 小程序写入的专家服务订单
+  const STORE_ORDER_KEY = 'zb-shop-store-orders'; // 小程序写入的到店预约单
+  const SERVICE_ORDER_STATUS_KEY = 'zb-shop-service-orders-status'; // 后台写回的服务订单状态
+  const STORE_ORDER_STATUS_KEY = 'zb-shop-store-orders-status'; // 后台写回的预约状态
 
   const read = (k, f) => {
     try {
@@ -255,13 +263,173 @@ window.ZBBridge = (function () {
     return (ZB.db.aftersales || []).filter((a) => a.status === 'pending').length;
   }
 
+  /* ---------------- 内容与专家系统 ---------------- */
+
+  /* 后台文章 → 小程序健康资讯 */
+  function publishArticles() {
+    const rows = (ZB.db.articles || [])
+      .filter((a) => a.status === 'published')
+      .map((a) => ({
+        id: a.id,
+        title: a.title,
+        category: a.category,
+        summary: a.summary,
+        content: a.content,
+        cover: a.cover || '',
+        source: a.source || '',
+        author: a.author || '',
+        views: a.views || 0,
+        createdAt: a.createdAt
+      }));
+    write(ARTICLE_KEY, rows);
+  }
+
+  /* 后台服务项目 → 小程序门店服务 */
+  function publishServices() {
+    const rows = (ZB.db.services || [])
+      .filter((s) => s.status === 'on')
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        price: s.price,
+        duration: s.duration,
+        desc: s.desc || '',
+        icon: s.icon || 'sparkles',
+        storeIds: s.storeIds || []
+      }));
+    write(SERVICE_KEY, rows);
+  }
+
+  /* 后台门店 → 小程序门店列表 */
+  function publishStores() {
+    const rows = (ZB.db.stores || []).map((s) => ({
+      id: s.id,
+      name: s.name,
+      tag: s.tag || '',
+      rating: s.rating,
+      address: s.address,
+      tel: s.tel,
+      hours: s.hours,
+      status: s.status,
+      services: (s.services || []).map((it, i) => ({
+        id: i + 1,
+        name: it[0],
+        price: it[1],
+        duration: it[2]
+      }))
+    }));
+    write(STORE_KEY, rows);
+  }
+
+  /* 后台专家 → 小程序专家列表 */
+  function publishExperts() {
+    const rows = (ZB.db.experts || [])
+      .filter((e) => e.status === 'on')
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        role: e.title,
+        title: e.org,
+        tags: String(e.good || '')
+          .split(/[、,，]/)
+          .filter(Boolean),
+        price: e.price,
+        types: e.types,
+        rating: e.rating,
+        orders: e.orders
+      }));
+    write(EXPERT_KEY, rows);
+  }
+
+  /* 拉取小程序提交的专家服务订单 */
+  function pullServiceOrders() {
+    const list = read(SERVICE_ORDER_KEY, []);
+    if (!Array.isArray(list) || !list.length) return 0;
+    ZB.db.serviceOrders = ZB.db.serviceOrders || [];
+    let added = 0;
+    list.forEach((o) => {
+      if (!o || !o.no) return;
+      if (ZB.db.serviceOrders.some((x) => x.no === o.no)) return;
+      ZB.db.serviceOrders.unshift({
+        id: o.id || 'so-' + Date.now(),
+        no: o.no,
+        member: o.member || '微信用户',
+        phone: o.phone || '',
+        expertName: o.expertName || '',
+        typeName: o.typeName || '',
+        price: o.price || 0,
+        dateLabel: o.dateLabel || '',
+        time: o.time || '',
+        status: o.status === 'paid' ? 'upcoming' : o.status || 'pending',
+        createdAt: o.createdAt || Date.now(),
+        source: 'mini'
+      });
+      added++;
+    });
+    if (added) ZB.save();
+    return added;
+  }
+
+  /* 拉取小程序提交的到店预约 */
+  function pullAppointments() {
+    const list = read(STORE_ORDER_KEY, []);
+    if (!Array.isArray(list) || !list.length) return 0;
+    ZB.db.appointments = ZB.db.appointments || [];
+    let added = 0;
+    list.forEach((a) => {
+      if (!a || !a.no) return;
+      if (ZB.db.appointments.some((x) => x.no === a.no)) return;
+      ZB.db.appointments.unshift({
+        id: a.id || 'ap-' + Date.now(),
+        no: a.no,
+        member: a.member || '微信用户',
+        phone: a.phone || '',
+        storeName: a.storeName || '',
+        serviceName: a.serviceName || '',
+        price: a.price || 0,
+        date: a.date || '',
+        time: a.time || '',
+        status: a.status || 'pending',
+        createdAt: a.createdAt || Date.now(),
+        source: 'mini'
+      });
+      added++;
+    });
+    if (added) ZB.save();
+    return added;
+  }
+
+  function publishServiceOrderStatus(o) {
+    const map = read(SERVICE_ORDER_STATUS_KEY, {});
+    map[o.no] = { status: o.status, updatedAt: o.updatedAt || Date.now() };
+    write(SERVICE_ORDER_STATUS_KEY, map);
+  }
+
+  function publishAppointmentStatus(a) {
+    const map = read(STORE_ORDER_STATUS_KEY, {});
+    map[a.no] = { status: a.status, updatedAt: a.updatedAt || Date.now() };
+    write(STORE_ORDER_STATUS_KEY, map);
+  }
+
   return {
     ORDER_KEY: ORDER_KEY,
     SHIP_KEY: SHIP_KEY,
     PRODUCT_KEY: PRODUCT_KEY,
     AFTERSALE_KEY: AFTERSALE_KEY,
     AFTERSALE_STATUS_KEY: AFTERSALE_STATUS_KEY,
+    ARTICLE_KEY: ARTICLE_KEY,
+    SERVICE_KEY: SERVICE_KEY,
+    STORE_KEY: STORE_KEY,
+    EXPERT_KEY: EXPERT_KEY,
+    SERVICE_ORDER_KEY: SERVICE_ORDER_KEY,
+    STORE_ORDER_KEY: STORE_ORDER_KEY,
+    SERVICE_ORDER_STATUS_KEY: SERVICE_ORDER_STATUS_KEY,
+    STORE_ORDER_STATUS_KEY: STORE_ORDER_STATUS_KEY,
     publishProducts: publishProducts,
+    publishArticles: publishArticles,
+    publishServices: publishServices,
+    publishStores: publishStores,
+    publishExperts: publishExperts,
     pullOrders: pullOrders,
     ship: ship,
     paidCount: paidCount,
@@ -273,6 +441,10 @@ window.ZBBridge = (function () {
     receiveAftersale: receiveAftersale,
     refundAftersale: refundAftersale,
     exchangeAftersale: exchangeAftersale,
-    pendingAftersaleCount: pendingAftersaleCount
+    pendingAftersaleCount: pendingAftersaleCount,
+    pullServiceOrders: pullServiceOrders,
+    pullAppointments: pullAppointments,
+    publishServiceOrderStatus: publishServiceOrderStatus,
+    publishAppointmentStatus: publishAppointmentStatus
   };
 })();

@@ -124,6 +124,44 @@
     { id: 6, name: '认知症长者照护（月）', type: '老年康养', price: 12800, unit: '月', stock: 20, sold: 7, status: 'on', desc: '认知训练 + 营养膳食 + 专属护理师' }
   ];
 
+  /* 文章管理：对应小程序「健康资讯」 */
+  const articles = [
+    { id: 1, title: '秋季养生：5 个小动作让你气血充盈', category: '养生知识', summary: '秋季是养生的黄金季节，中医推荐这几个简单的日常养生方法，帮助您调理身体，预防疾病。', content: '秋季阳气渐收、阴气渐长，养生重在「收」。每天坚持梳头、揉腹、搓腰、按足三里、踮脚 5 个小动作，每次 3-5 分钟，可促进气血运行，改善手脚冰凉与疲劳感。', cover: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=400', source: '中兵康养', author: '健康编辑部', views: 1234, status: 'published', createdAt: daysAgo(1, 3) },
+    { id: 2, title: '高血压患者的饮食注意事项', category: '疾病预防', summary: '科学饮食对于控制血压至关重要，这些食物建议多吃，那些食物尽量少吃，一起来看看。', content: '控盐是核心，每日食盐不超过 5 克；多吃富含钾的蔬菜水果，如菠菜、香蕉、土豆；限制动物内脏与油炸食品；戒烟限酒，规律作息。', cover: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400', source: '健康时报', author: '王医生', views: 2891, status: 'published', createdAt: daysAgo(2, 5) },
+    { id: 3, title: '如何选择适合自己的运动方式', category: '健康科普', summary: '不同年龄、不同体质的人，运动方式的选择也大有讲究，快来看看怎么选。', content: '年轻人可选中高强度有氧与力量训练；中老年更适合快走、太极、八段锦；慢病人群运动前应咨询医生，遵循循序渐进、量力而行的原则。', cover: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=400', source: '中兵康养', author: '运动康复中心', views: 1567, status: 'published', createdAt: daysAgo(3, 2) },
+    { id: 4, title: '2026 中国康养产业发展报告发布', category: '行业动态', summary: '最新报告显示，中国康养产业市场规模已突破 10 万亿元，年增长率持续保持在 15% 以上。', content: '报告指出，康养产业正从单一养老服务向「医、养、旅、居」融合发展，智慧健康管理与社区康养成为新的增长点。', cover: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400', source: '新华网', author: '产业观察', views: 3456, status: 'published', createdAt: daysAgo(4, 6) },
+    { id: 5, title: '冬季如何科学进补？中医给出 5 点建议', category: '养生知识', summary: '冬令进补是传统养生方法，但并非人人适合，科学进补才能事半功倍。', content: '进补前先辨体质：气虚者补气、血虚者补血、阳虚者温阳；忌盲目大补；搭配适量运动与充足睡眠；慢病人群需在医师指导下进补。', cover: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', source: '中医养生', author: '李明远', views: 2134, status: 'published', createdAt: daysAgo(5, 4) },
+    { id: 6, title: '睡眠不好？试试这 7 个改善睡眠的方法', category: '健康科普', summary: '好的睡眠是健康的基础，长期失眠会带来多种健康问题，一起来学习改善方法。', content: '固定作息时间、睡前 1 小时远离手机、卧室保持黑暗与安静、晚餐不过饱、适度运动、温水泡脚、必要时寻求专业帮助。', cover: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400', source: '中兵康养', author: '睡眠管理中心', views: 4521, status: 'published', createdAt: daysAgo(6, 8) },
+    { id: 7, title: '中兵康养「暖冬计划」上线', category: '行业动态', summary: '面向 60 岁以上长者推出冬季康养旅居补贴，名额有限。', content: '暖冬计划包含三亚、巴马、昆明三条线路，含住宿、营养餐与健康监测，报名即可享专属补贴。', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400', source: '中兵康养', author: '运营中心', views: 0, status: 'draft', createdAt: daysAgo(0, 2) }
+  ];
+
+  /* 到店服务项目：对应小程序「门店服务」 */
+  const services = [
+    { id: 1, name: '针灸调理', price: 168, duration: '约 40 分钟', desc: '疏通经络、缓解颈肩腰腿疼痛', icon: 'sparkles', orders: 186, status: 'on', storeIds: [1, 2, 3] },
+    { id: 2, name: '推拿按摩', price: 198, duration: '约 45 分钟', desc: '全身经络推拿，放松肌肉与筋膜', icon: 'heart', orders: 254, status: 'on', storeIds: [1, 2, 3, 4] },
+    { id: 3, name: '艾灸温养', price: 128, duration: '约 40 分钟', desc: '温经散寒、改善手脚冰凉与体虚', icon: 'leaf', orders: 302, status: 'on', storeIds: [1, 2, 3] },
+    { id: 4, name: '拔罐祛湿', price: 88, duration: '约 20 分钟', desc: '祛湿排毒、缓解疲劳与肌肉酸痛', icon: 'shield', orders: 168, status: 'on', storeIds: [1, 2] },
+    { id: 5, name: '中药熏蒸', price: 158, duration: '约 30 分钟', desc: '药浴熏蒸，改善睡眠与代谢', icon: 'timer', orders: 96, status: 'on', storeIds: [1, 3, 4] },
+    { id: 6, name: '康复理疗', price: 268, duration: '约 60 分钟', desc: '仪器理疗 + 手法康复，术后调理', icon: 'stethoscope', orders: 74, status: 'off', storeIds: [1, 3, 4] }
+  ];
+
+  /* 服务订单：小程序专家咨询 / 预约产生的订单 */
+  const serviceOrders = [
+    { id: 'so-1001', no: 'SV2026010001', member: '张先生', phone: '138****8888', expertName: '周敏', typeName: '视频咨询', price: 299, dateLabel: '明天', time: '10:00', status: 'upcoming', createdAt: daysAgo(0, 4), source: 'mini' },
+    { id: 'so-1002', no: 'SV2026010002', member: '李女士', phone: '139****2233', expertName: '陈立', typeName: '图文咨询', price: 89, dateLabel: '今天', time: '15:00', status: 'pending', createdAt: daysAgo(0, 6), source: 'mini' },
+    { id: 'so-1003', no: 'SV2026010003', member: '王阿姨', phone: '137****6677', expertName: '刘婧', typeName: '电话咨询', price: 219, dateLabel: '今天', time: '09:00', status: 'done', createdAt: daysAgo(1, 2), source: 'mini' },
+    { id: 'so-1004', no: 'SV2026010004', member: '刘先生', phone: '135****1122', expertName: '孙悦', typeName: '图文咨询', price: 109, dateLabel: '昨天', time: '20:00', status: 'cancelled', createdAt: daysAgo(2, 3), source: 'mini' },
+    { id: 'so-1005', no: 'SV2026010005', member: '陈女士', phone: '136****8899', expertName: '赵鹏', typeName: '视频咨询', price: 279, dateLabel: '明天', time: '14:00', status: 'upcoming', createdAt: daysAgo(0, 2), source: 'mini' }
+  ];
+
+  /* 到店预约：小程序门店服务预约单 */
+  const appointments = [
+    { id: 'ap-1001', no: 'YY2026010001', member: '张先生', phone: '138****8888', storeName: '中兵康养中心（朝阳旗舰店）', serviceName: '针灸调理', price: 168, date: '今天', time: '10:00', status: 'pending', createdAt: daysAgo(0, 3), source: 'mini' },
+    { id: 'ap-1002', no: 'YY2026010002', member: '李女士', phone: '139****2233', storeName: '中兵康养中心（海淀店）', serviceName: '推拿按摩', price: 198, date: '明天', time: '15:00', status: 'confirmed', createdAt: daysAgo(0, 5), source: 'mini' },
+    { id: 'ap-1003', no: 'YY2026010003', member: '王阿姨', phone: '137****6677', storeName: '中兵康养中心（朝阳旗舰店）', serviceName: '艾灸温养', price: 128, date: '今天', time: '09:00', status: 'done', createdAt: daysAgo(1, 1), source: 'mini' },
+    { id: 'ap-1004', no: 'YY2026010004', member: '孙女士', phone: '188****5566', storeName: '中兵康养中心（东城店）', serviceName: '中药熏蒸', price: 158, date: '昨天', time: '16:30', status: 'cancelled', createdAt: daysAgo(2, 4), source: 'mini' }
+  ];
+
   const messages = [
     { id: 1, title: '双十一健康狂欢开启', type: '活动通知', content: '全场满 399 减 40，会员再享 95 折，活动截止 11 月 11 日。', target: '全部会员', status: '已发送', createdAt: daysAgo(1, 2) },
     { id: 2, title: '秋季养生指南已更新', type: '健康资讯', content: '秋季润燥、护肺、早睡晚起，点击查看完整养生建议。', target: '全部会员', status: '已发送', createdAt: daysAgo(2, 6) },
@@ -245,6 +283,10 @@
     stores: stores,
     experts: experts,
     travel: travel,
+    articles: articles,
+    services: services,
+    serviceOrders: serviceOrders,
+    appointments: appointments,
     messages: messages,
     tasks: tasks,
     settings: settings

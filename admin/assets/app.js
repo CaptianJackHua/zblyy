@@ -8,8 +8,19 @@
       items: [{ key: 'dashboard', label: '数据概览', icon: 'dashboard' }]
     },
     {
-      group: '交易管理',
+      group: '基础信息维护',
       items: [
+        { key: 'articles', label: '文章管理', icon: 'article' },
+        { key: 'messages', label: '消息中心', icon: 'message' },
+        { key: 'members', label: '用户管理', icon: 'member' },
+        { key: 'settings', label: '系统管理', icon: 'setting' }
+      ]
+    },
+    {
+      group: '商城管理',
+      items: [
+        { key: 'products', label: '商品管理', icon: 'product' },
+        { key: 'points-shop', label: '积分商城', icon: 'gift' },
         { key: 'orders', label: '订单管理', icon: 'order' },
         { key: 'aftersales', label: '售后管理', icon: 'message' },
         { key: 'outbounds', label: '出库管理', icon: 'product' },
@@ -17,31 +28,15 @@
       ]
     },
     {
-      group: '商品管理',
+      group: '专家系统',
       items: [
-        { key: 'products', label: '商品管理', icon: 'product' },
-        { key: 'points-shop', label: '积分商城', icon: 'gift' }
-      ]
-    },
-    {
-      group: '用户管理',
-      items: [{ key: 'members', label: '会员管理', icon: 'member' }]
-    },
-    {
-      group: '服务管理',
-      items: [
-        { key: 'stores', label: '门店管理', icon: 'store' },
+        { key: 'services', label: '服务管理', icon: 'service' },
         { key: 'experts', label: '专家管理', icon: 'expert' },
+        { key: 'service-orders', label: '服务订单', icon: 'order' },
+        { key: 'appointments', label: '预约系统', icon: 'calendar' },
+        { key: 'stores', label: '门店管理', icon: 'store' },
         { key: 'travel', label: '康养旅居', icon: 'travel' }
       ]
-    },
-    {
-      group: '内容管理',
-      items: [{ key: 'messages', label: '消息中心', icon: 'message' }]
-    },
-    {
-      group: '系统',
-      items: [{ key: 'settings', label: '系统设置', icon: 'setting' }]
     }
   ];
 
@@ -95,6 +90,10 @@
     current = key;
     if (key === 'orders' && window.ZBBridge) window.ZBBridge.pullOrders();
     if (key === 'aftersales' && window.ZBBridge) window.ZBBridge.pullAftersales();
+    if ((key === 'service-orders' || key === 'appointments') && window.ZBBridge) {
+      window.ZBBridge.pullServiceOrders();
+      window.ZBBridge.pullAppointments();
+    }
     document.getElementById('crumb-group').textContent = page.group;
     document.getElementById('crumb-page').textContent = page.title;
     renderNav();
@@ -114,9 +113,12 @@
     document.getElementById('app').classList.remove('hidden');
     const added = window.ZBBridge ? window.ZBBridge.pullOrders() : 0;
     const asAdded = window.ZBBridge ? window.ZBBridge.pullAftersales() : 0;
+    const svAdded = window.ZBBridge ? window.ZBBridge.pullServiceOrders() : 0;
+    const apAdded = window.ZBBridge ? window.ZBBridge.pullAppointments() : 0;
     renderPage(readHash());
     if (added) ZB.toast('收到 ' + added + ' 笔小程序新订单');
     if (asAdded) setTimeout(() => ZB.toast('收到 ' + asAdded + ' 笔售后申请'), 1500);
+    if (svAdded || apAdded) setTimeout(() => ZB.toast('收到 ' + (svAdded + apAdded) + ' 笔服务预约'), 2600);
   }
 
   function showLogin() {
@@ -159,7 +161,13 @@
 
   /* ---------- 初始化 ---------- */
   ZB.load();
-  if (window.ZBBridge) window.ZBBridge.publishProducts();
+  if (window.ZBBridge) {
+    window.ZBBridge.publishProducts();
+    window.ZBBridge.publishArticles();
+    window.ZBBridge.publishServices();
+    window.ZBBridge.publishStores();
+    window.ZBBridge.publishExperts();
+  }
   ZB.setRefresh(() => renderPage(current));
 
   const week = ['日', '一', '二', '三', '四', '五', '六'];

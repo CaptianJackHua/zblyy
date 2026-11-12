@@ -49,7 +49,7 @@
   }
 
   ZB.pages.members = {
-    group: '用户管理',
+    group: '基础信息维护',
     title: '会员管理',
     render() {
       const st = ZB.state.members;
@@ -198,7 +198,7 @@
   }
 
   ZB.pages.stores = {
-    group: '服务管理',
+    group: '专家系统',
     title: '门店管理',
     render() {
       const cols = [
@@ -285,7 +285,7 @@
   }
 
   ZB.pages.experts = {
-    group: '服务管理',
+    group: '专家系统',
     title: '专家管理',
     render() {
       const cols = [
@@ -376,7 +376,7 @@
   }
 
   ZB.pages.travel = {
-    group: '服务管理',
+    group: '专家系统',
     title: '康养旅居',
     render() {
       const cols = [
@@ -478,7 +478,7 @@
   }
 
   ZB.pages.messages = {
-    group: '内容管理',
+    group: '基础信息维护',
     title: '消息中心',
     render() {
       const st = ZB.state.messages;
@@ -558,8 +558,8 @@
 
   /* ================= 系统设置 ================= */
   ZB.pages.settings = {
-    group: '系统',
-    title: '系统设置',
+    group: '基础信息维护',
+    title: '系统管理',
     render() {
       const s = db().settings;
       return (
