@@ -180,10 +180,17 @@
     });
   }
 
+  ZB.state.services = { q: '' };
+
   ZB.pages.services = {
     group: '专家系统',
     title: '服务管理',
     render() {
+      const st = ZB.state.services;
+      const kw = st.q.trim().toLowerCase();
+      let rows = db().services.slice();
+      if (kw) rows = rows.filter((s) => (s.name + s.desc + s.duration).toLowerCase().indexOf(kw) >= 0);
+
       const cols = [
         {
           title: '服务项目',
@@ -208,11 +215,21 @@
       return (
         '<div class="card"><div class="table-toolbar">' +
         '<div class="card-title">到店服务项目<small>共 ' + db().services.length + ' 项，小程序门店服务同步展示</small></div>' +
-        '<div class="toolbar-right"><button class="btn btn-primary" data-act="svcnew">+ 新增服务</button></div></div>' +
-        table(cols, db().services) + '</div>'
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索服务名称 / 说明') +
+        '<button class="btn btn-primary" data-act="svcnew">+ 新增服务</button></div></div>' +
+        table(cols, rows, '没有匹配的服务') + '</div>'
       );
     },
     after() {
+      const st = ZB.state.services;
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       document.querySelector('[data-act="svcnew"]').onclick = () => editService();
       document.querySelectorAll('[data-act="svcedit"]').forEach((el) => (el.onclick = () => editService(Number(el.dataset.id))));
       document.querySelectorAll('[data-act="svctoggle"]').forEach((el) => {
@@ -252,7 +269,7 @@
     return pill(m.text, m.cls);
   };
 
-  ZB.state.serviceOrders = { tab: 'all' };
+  ZB.state.serviceOrders = { tab: 'all', q: '' };
 
   function setServiceOrderStatus(o, status) {
     o.status = status;
@@ -267,6 +284,7 @@
     title: '服务订单',
     render() {
       const st = ZB.state.serviceOrders;
+      const kw = st.q.trim().toLowerCase();
       const all = db().serviceOrders || [];
       const tabs = [
         { key: 'all', label: '全部', count: all.length },
@@ -275,7 +293,8 @@
         { key: 'done', label: '已完成', count: all.filter((o) => o.status === 'done').length },
         { key: 'cancelled', label: '已取消', count: all.filter((o) => o.status === 'cancelled').length }
       ];
-      const rows = all.filter((o) => st.tab === 'all' || o.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      let rows = all.filter((o) => st.tab === 'all' || o.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (kw) rows = rows.filter((o) => (o.no + o.member + o.phone + o.expertName).toLowerCase().indexOf(kw) >= 0);
 
       const cols = [
         {
@@ -302,19 +321,25 @@
       ];
 
       return (
-        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) + '</div>' +
-        table(cols, rows, '暂无服务订单') +
+        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) +
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索订单号 / 会员 / 手机号 / 专家') + '</div></div>' +
+        table(cols, rows, '没有匹配的服务订单') +
         '<div class="table-foot"><span>共 ' + all.length + ' 单</span><span>待支付 ' + all.filter((o) => o.status === 'pending').length + ' 单</span></div></div>'
       );
     },
     after() {
       const st = ZB.state.serviceOrders;
       document.querySelectorAll('[data-tab]').forEach((el) => {
-        el.onclick = () => {
-          st.tab = el.dataset.tab;
-          refresh();
-        };
+        el.onclick = () => { st.tab = el.dataset.tab; refresh(); };
       });
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       const find = (id) => db().serviceOrders.find((x) => x.id === id);
       document.querySelectorAll('[data-act="sook"]').forEach((el) => {
         el.onclick = () => {
@@ -352,7 +377,7 @@
     return pill(m.text, m.cls);
   };
 
-  ZB.state.appointments = { tab: 'all' };
+  ZB.state.appointments = { tab: 'all', q: '' };
 
   function setAppointmentStatus(a, status) {
     a.status = status;
@@ -367,6 +392,7 @@
     title: '预约系统',
     render() {
       const st = ZB.state.appointments;
+      const kw = st.q.trim().toLowerCase();
       const all = db().appointments || [];
       const tabs = [
         { key: 'all', label: '全部', count: all.length },
@@ -375,7 +401,8 @@
         { key: 'done', label: '已完成', count: all.filter((a) => a.status === 'done').length },
         { key: 'cancelled', label: '已取消', count: all.filter((a) => a.status === 'cancelled').length }
       ];
-      const rows = all.filter((a) => st.tab === 'all' || a.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      let rows = all.filter((a) => st.tab === 'all' || a.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (kw) rows = rows.filter((a) => (a.no + a.member + a.phone + a.storeName + a.serviceName).toLowerCase().indexOf(kw) >= 0);
 
       const cols = [
         {
@@ -402,19 +429,25 @@
       ];
 
       return (
-        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) + '</div>' +
-        table(cols, rows, '暂无预约单') +
+        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) +
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索预约号 / 会员 / 手机号 / 门店 / 服务') + '</div></div>' +
+        table(cols, rows, '没有匹配的预约单') +
         '<div class="table-foot"><span>共 ' + all.length + ' 单</span><span>待确认 ' + all.filter((a) => a.status === 'pending').length + ' 单</span></div></div>'
       );
     },
     after() {
       const st = ZB.state.appointments;
       document.querySelectorAll('[data-tab]').forEach((el) => {
-        el.onclick = () => {
-          st.tab = el.dataset.tab;
-          refresh();
-        };
+        el.onclick = () => { st.tab = el.dataset.tab; refresh(); };
       });
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       const find = (id) => db().appointments.find((x) => x.id === id);
       document.querySelectorAll('[data-act="apok"]').forEach((el) => {
         el.onclick = () => {

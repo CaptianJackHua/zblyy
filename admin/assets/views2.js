@@ -197,10 +197,17 @@
     });
   }
 
+  ZB.state.stores = { q: '' };
+
   ZB.pages.stores = {
     group: '专家系统',
     title: '门店管理',
     render() {
+      const st = ZB.state.stores;
+      const kw = st.q.trim().toLowerCase();
+      let rows = db().stores.slice();
+      if (kw) rows = rows.filter((s) => (s.name + s.tel + s.address).toLowerCase().indexOf(kw) >= 0);
+
       const cols = [
         {
           title: '门店',
@@ -226,11 +233,21 @@
       return (
         '<div class="card"><div class="table-toolbar">' +
         '<div class="card-title">门店列表<small>共 ' + db().stores.length + ' 家</small></div>' +
-        '<div class="toolbar-right"><button class="btn btn-primary" data-act="snew">+ 新增门店</button></div></div>' +
-        table(cols, db().stores) + '</div>'
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索门店名称 / 电话 / 地址') +
+        '<button class="btn btn-primary" data-act="snew">+ 新增门店</button></div></div>' +
+        table(cols, rows, '没有匹配的门店') + '</div>'
       );
     },
     after() {
+      const st = ZB.state.stores;
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       document.querySelector('[data-act="snew"]').onclick = () => editStore();
       document.querySelectorAll('[data-act="sedit"]').forEach((el) => (el.onclick = () => editStore(Number(el.dataset.id))));
       document.querySelectorAll('[data-act="ssvc"]').forEach((el) => (el.onclick = () => storeServices(Number(el.dataset.id))));
@@ -284,10 +301,17 @@
     });
   }
 
+  ZB.state.experts = { q: '' };
+
   ZB.pages.experts = {
     group: '专家系统',
     title: '专家管理',
     render() {
+      const st = ZB.state.experts;
+      const kw = st.q.trim().toLowerCase();
+      let rows = db().experts.slice();
+      if (kw) rows = rows.filter((e) => (e.name + e.title + e.org + e.good).toLowerCase().indexOf(kw) >= 0);
+
       const cols = [
         {
           title: '专家',
@@ -314,11 +338,21 @@
       return (
         '<div class="card"><div class="table-toolbar">' +
         '<div class="card-title">专家列表<small>共 ' + db().experts.length + ' 位</small></div>' +
-        '<div class="toolbar-right"><button class="btn btn-primary" data-act="enew">+ 新增专家</button></div></div>' +
-        table(cols, db().experts) + '</div>'
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索专家姓名 / 职称 / 擅长 / 机构') +
+        '<button class="btn btn-primary" data-act="enew">+ 新增专家</button></div></div>' +
+        table(cols, rows, '没有匹配的专家') + '</div>'
       );
     },
     after() {
+      const st = ZB.state.experts;
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       document.querySelector('[data-act="enew"]').onclick = () => editExpert();
       document.querySelectorAll('[data-act="eedit"]').forEach((el) => (el.onclick = () => editExpert(Number(el.dataset.id))));
       document.querySelectorAll('[data-act="etoggle"]').forEach((el) => {
@@ -375,10 +409,17 @@
     });
   }
 
+  ZB.state.travel = { q: '' };
+
   ZB.pages.travel = {
     group: '专家系统',
     title: '康养旅居',
     render() {
+      const st = ZB.state.travel;
+      const kw = st.q.trim().toLowerCase();
+      let rows = db().travel.slice();
+      if (kw) rows = rows.filter((t) => (t.name + t.desc + t.type).toLowerCase().indexOf(kw) >= 0);
+
       const cols = [
         {
           title: '产品',
@@ -403,11 +444,21 @@
       return (
         '<div class="card"><div class="table-toolbar">' +
         '<div class="card-title">旅居产品<small>共 ' + db().travel.length + ' 个</small></div>' +
-        '<div class="toolbar-right"><button class="btn btn-primary" data-act="tnew">+ 新增产品</button></div></div>' +
-        table(cols, db().travel) + '</div>'
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索产品名称 / 类型 / 说明') +
+        '<button class="btn btn-primary" data-act="tnew">+ 新增产品</button></div></div>' +
+        table(cols, rows, '没有匹配的产品') + '</div>'
       );
     },
     after() {
+      const st = ZB.state.travel;
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       document.querySelector('[data-act="tnew"]').onclick = () => editTravel();
       document.querySelectorAll('[data-act="tedit"]').forEach((el) => (el.onclick = () => editTravel(Number(el.dataset.id))));
       document.querySelectorAll('[data-act="ttoggle2"]').forEach((el) => {
@@ -434,7 +485,7 @@
   };
 
   /* ================= 消息中心 ================= */
-  ZB.state.messages = { tab: 'all' };
+  ZB.state.messages = { tab: 'all', q: '' };
 
   const messageFields = [
     { key: 'title', label: '消息标题', required: true, full: true },
@@ -482,13 +533,15 @@
     title: '消息中心',
     render() {
       const st = ZB.state.messages;
+      const kw = st.q.trim().toLowerCase();
       const all = db().messages;
       const tabItems = [
         { key: 'all', label: '全部', count: all.length },
         { key: '已发送', label: '已发送', count: all.filter((m) => m.status === '已发送').length },
         { key: '草稿', label: '草稿箱', count: all.filter((m) => m.status === '草稿').length }
       ];
-      const rows = all.filter((m) => st.tab === 'all' || m.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      let rows = all.filter((m) => st.tab === 'all' || m.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (kw) rows = rows.filter((m) => (m.title + m.content + m.type + m.target).toLowerCase().indexOf(kw) >= 0);
 
       const cols = [
         {
@@ -515,18 +568,24 @@
 
       return (
         '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabItems, st.tab) +
-        '<div class="toolbar-right"><button class="btn btn-primary" data-act="mnew">+ 新建消息</button></div></div>' +
-        table(cols, rows, '暂无消息') + '</div>'
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索消息标题 / 内容 / 类型') +
+        '<button class="btn btn-primary" data-act="mnew">+ 新建消息</button></div></div>' +
+        table(cols, rows, '没有匹配的消息') + '</div>'
       );
     },
     after() {
       const st = ZB.state.messages;
       document.querySelectorAll('[data-tab]').forEach((el) => {
-        el.onclick = () => {
-          st.tab = el.dataset.tab;
-          refresh();
-        };
+        el.onclick = () => { st.tab = el.dataset.tab; refresh(); };
       });
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
       document.querySelector('[data-act="mnew"]').onclick = () => editMessage();
       document.querySelectorAll('[data-act="mpreview"]').forEach((el) => (el.onclick = () => previewMessage(Number(el.dataset.id))));
       document.querySelectorAll('[data-act="medit"]').forEach((el) => (el.onclick = () => editMessage(Number(el.dataset.id))));
