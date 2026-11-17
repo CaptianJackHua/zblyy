@@ -563,4 +563,303 @@
       });
     }
   };
+
+  /* ================= 会员权益配置 ================= */
+  const BENEFIT_LEVELS = { normal: '普通会员', silver: '银卡会员', gold: '金卡会员', diamond: '钻石会员' };
+  const benefitLevelText = (level) => BENEFIT_LEVELS[level] || level;
+
+  function editBenefit(id) {
+    const isNew = !id;
+    const source = isNew
+      ? { level: 'silver', serviceId: 3, storeIds: [], totalTimes: 1, startDate: '2026-01-01', endDate: '2027-12-31', description: '', status: 'on' }
+      : db().memberBenefits.find((b) => String(b.id) === String(id));
+    if (!source) return;
+    const item = JSON.parse(JSON.stringify(source));
+
+    ZB.modal({
+      title: isNew ? '新增会员权益' : '编辑会员权益',
+      wide: true,
+      body:
+        '<form id="benefit-form" class="form-grid" autocomplete="off">' +
+        '<label class="field"><span>会员等级 <em style="color:#ef4444;font-style:normal">*</em></span><select name="level">' +
+        Object.keys(BENEFIT_LEVELS).map((key) => '<option value="' + key + '"' + (item.level === key ? ' selected' : '') + '>' + BENEFIT_LEVELS[key] + '</option>').join('') +
+        '</select></label>' +
+        '<label class="field"><span>对应服务 <em style="color:#ef4444;font-style:normal">*</em></span><select name="serviceId">' +
+        db().services.map((s) => '<option value="' + s.id + '"' + (String(item.serviceId) === String(s.id) ? ' selected' : '') + '>' + esc(s.name) + (s.status === 'on' ? '' : '（已下架）') + '</option>').join('') +
+        '</select></label>' +
+        '<label class="field"><span>可用总次数 <em style="color:#ef4444;font-style:normal">*</em></span><input name="totalTimes" type="number" min="1" step="1" value="' + item.totalTimes + '"></label>' +
+        '<label class="field"><span>启停状态</span><select name="status"><option value="on"' + (item.status === 'on' ? ' selected' : '') + '>启用</option><option value="off"' + (item.status === 'off' ? ' selected' : '') + '>停用</option></select></label>' +
+        '<label class="field"><span>生效日期 <em style="color:#ef4444;font-style:normal">*</em></span><input name="startDate" type="date" value="' + esc(item.startDate) + '"></label>' +
+        '<label class="field"><span>失效日期 <em style="color:#ef4444;font-style:normal">*</em></span><input name="endDate" type="date" value="' + esc(item.endDate) + '"></label>' +
+        '<div class="field full"><span>适用门店 <em style="color:#ef4444;font-style:normal">*</em></span><div id="benefit-store-options" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px"></div></div>' +
+        '<label class="field full"><span>权益说明</span><textarea name="description" placeholder="说明使用规则、服务内容等">' + esc(item.description) + '</textarea></label>' +
+        '</form>',
+      foot: '<button class="btn btn-ghost" data-cancel>取消</button><button class="btn btn-primary" id="benefit-save">保存</button>',
+      onMount(root) {
+        const form = root.querySelector('#benefit-form');
+        const serviceSelect = form.elements.serviceId;
+        const storeBox = root.querySelector('#benefit-store-options');
+
+        function availableStores() {
+          const service = db().services.find((s) => String(s.id) === String(serviceSelect.value));
+          return db().stores.filter(
+            (store) => store.status === 'on' && service && service.status === 'on' &&
+              (!(service.storeIds || []).length || (service.storeIds || []).some((sid) => String(sid) === String(store.id)))
+          );
+        }
+
+        function renderStores() {
+          const stores = availableStores();
+          storeBox.innerHTML = stores.length
+            ? stores.map((store) =>
+                '<label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid #e4ebf0;border-radius:8px;font-size:12.5px;cursor:pointer">' +
+                '<input type="checkbox" name="storeIds" value="' + store.id + '"' + ((item.storeIds || []).some((sid) => String(sid) === String(store.id)) ? ' checked' : '') + '>' +
+                '<span>' + esc(store.name) + '<small style="display:block;color:#93a1b0;margin-top:3px">' + esc(store.address) + '</small></span></label>'
+              ).join('')
+            : '<div class="cell-sub">该服务暂无可用门店，请先检查服务状态及门店关联。</div>';
+        }
+
+        serviceSelect.onchange = () => {
+          item.storeIds = [];
+          renderStores();
+        };
+        root.querySelector('[data-cancel]').onclick = ZB.closeModal;
+        root.querySelector('#benefit-save').onclick = () => {
+          const service = db().services.find((s) => String(s.id) === String(serviceSelect.value));
+          const selected = Array.from(form.querySelectorAll('input[name="storeIds"]:checked')).map((el) => Number(el.value));
+          const totalTimes = Number(form.elements.totalTimes.value);
+          const startDate = form.elements.startDate.value;
+          const endDate = form.elements.endDate.value;
+          if (!service || service.status !== 'on') return ZB.toast('请选择已上架的服务');
+          if (!Number.isInteger(totalTimes) || totalTimes < 1) return ZB.toast('可用总次数必须为正整数');
+          if (!startDate || !endDate || startDate > endDate) return ZB.toast('请填写正确的有效期起止日期');
+          if (!selected.length) return ZB.toast('请至少选择一家适用门店');
+          const allowedIds = availableStores().map((s) => String(s.id));
+          if (selected.some((sid) => allowedIds.indexOf(String(sid)) < 0)) return ZB.toast('所选门店当前不适用该服务');
+
+          const usedByMember = {};
+          (db().benefitVouchers || []).forEach((v) => {
+            if (String(v.benefitId) === String(id) && v.status === 'verified') {
+              const key = String(v.memberId);
+              usedByMember[key] = (usedByMember[key] || 0) + 1;
+            }
+          });
+          const maxUsed = Object.keys(usedByMember).reduce((max, key) => Math.max(max, usedByMember[key]), 0);
+          if (totalTimes < maxUsed) return ZB.toast('总次数不能低于会员已核销的最高次数（' + maxUsed + ' 次）');
+
+          Object.assign(item, {
+            level: form.elements.level.value,
+            serviceId: Number(serviceSelect.value),
+            storeIds: selected,
+            totalTimes: totalTimes,
+            startDate: startDate,
+            endDate: endDate,
+            description: form.elements.description.value.trim(),
+            status: form.elements.status.value
+          });
+          if (isNew) db().memberBenefits.unshift(Object.assign({ id: Date.now() }, item));
+          else Object.assign(source, item);
+          ZB.save();
+          ZB.closeModal();
+          if (window.ZBBridge) window.ZBBridge.publishBenefits();
+          ZB.toast(isNew ? '会员权益已新增' : '会员权益已保存');
+          refresh();
+        };
+        renderStores();
+      }
+    });
+  }
+
+  ZB.state.memberBenefits = { q: '' };
+  ZB.pages['member-benefits'] = {
+    group: '基础信息维护',
+    title: '权益配置',
+    render() {
+      const st = ZB.state.memberBenefits;
+      const kw = st.q.trim().toLowerCase();
+      const all = db().memberBenefits || [];
+      let rows = all.slice();
+      if (kw) {
+        rows = rows.filter((b) => {
+          const service = db().services.find((s) => String(s.id) === String(b.serviceId));
+          return (benefitLevelText(b.level) + (service ? service.name : '') + b.description).toLowerCase().indexOf(kw) >= 0;
+        });
+      }
+      const cols = [
+        {
+          title: '会员权益',
+          render: (b) => {
+            const service = db().services.find((s) => String(s.id) === String(b.serviceId));
+            return '<div class="cell-name">' + esc(service ? service.name : '服务已删除') + '</div><div class="cell-sub">' + esc(b.description || '暂无权益说明') + '</div>';
+          }
+        },
+        { title: '会员等级', render: (b) => pill(benefitLevelText(b.level), b.level === 'diamond' ? 'pill-purple' : b.level === 'gold' ? 'pill-orange' : 'pill-blue') },
+        {
+          title: '适用门店',
+          cls: 'td-muted',
+          render: (b) => '<div>' + (b.storeIds || []).length + ' 家门店</div><div class="cell-sub">' + esc((b.storeIds || []).map((id) => {
+            const store = db().stores.find((s) => String(s.id) === String(id));
+            return store ? store.name.replace('中兵康养中心', '') : '门店已删除';
+          }).join('、')) + '</div>'
+        },
+        { title: '可用次数', cls: 'td-strong', render: (b) => num(b.totalTimes) + ' 次' },
+        { title: '有效期', cls: 'td-muted td-nowrap', render: (b) => esc(b.startDate) + '<div class="cell-sub">至 ' + esc(b.endDate) + '</div>' },
+        { title: '状态', render: (b) => b.status === 'on' ? pill('已启用', 'pill-green') : pill('已停用', 'pill-gray') },
+        {
+          title: '操作',
+          cls: 'td-nowrap',
+          render: (b) =>
+            '<span class="link-btn" data-act="bfedit" data-id="' + b.id + '">编辑</span>' +
+            '<span class="link-btn" data-act="bftoggle" data-id="' + b.id + '">' + (b.status === 'on' ? '停用' : '启用') + '</span>' +
+            '<span class="link-btn danger" data-act="bfdel" data-id="' + b.id + '">删除</span>'
+        }
+      ];
+      return (
+        '<div class="card"><div class="table-toolbar"><div class="card-title">会员服务权益<small>一项权益绑定一项服务，可配置多家适用门店</small></div>' +
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索等级 / 服务 / 权益说明') + '<button class="btn btn-primary" data-act="bfnew">+ 新增权益</button></div></div>' +
+        table(cols, rows, '暂无权益配置') +
+        '<div class="table-foot"><span>共 ' + all.length + ' 项权益</span><span>启用 ' + all.filter((b) => b.status === 'on').length + ' 项</span></div></div>'
+      );
+    },
+    after() {
+      const st = ZB.state.memberBenefits;
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
+      document.querySelector('[data-act="bfnew"]').onclick = () => editBenefit();
+      document.querySelectorAll('[data-act="bfedit"]').forEach((el) => (el.onclick = () => editBenefit(el.dataset.id)));
+      document.querySelectorAll('[data-act="bftoggle"]').forEach((el) => {
+        el.onclick = () => {
+          const b = db().memberBenefits.find((x) => String(x.id) === String(el.dataset.id));
+          b.status = b.status === 'on' ? 'off' : 'on';
+          ZB.save();
+          if (window.ZBBridge) window.ZBBridge.publishBenefits();
+          ZB.toast(b.status === 'on' ? '权益已启用' : '权益已停用');
+          refresh();
+        };
+      });
+      document.querySelectorAll('[data-act="bfdel"]').forEach((el) => {
+        el.onclick = () => {
+          const b = db().memberBenefits.find((x) => String(x.id) === String(el.dataset.id));
+          if ((db().benefitVouchers || []).some((v) => String(v.benefitId) === String(b.id))) {
+            ZB.toast('该权益已产生凭证，请改用停用以保留核销记录');
+            return;
+          }
+          ZB.confirm('删除权益', '确定删除该会员权益配置？', () => {
+            db().memberBenefits = db().memberBenefits.filter((x) => String(x.id) !== String(b.id));
+            ZB.save();
+            if (window.ZBBridge) window.ZBBridge.publishBenefits();
+            ZB.toast('权益已删除');
+            refresh();
+          });
+        };
+      });
+    }
+  };
+
+  /* ================= 会员权益核销 ================= */
+  ZB.state.benefitVouchers = { tab: 'all', q: '' };
+
+  function openBenefitVerify(voucher) {
+    ZB.formModal(
+      '会员权益核销',
+      [{ key: 'verifyCode', label: '核销码', required: true, full: true, placeholder: '扫描或输入会员出示的核销码' }],
+      { verifyCode: '' },
+      (value) => {
+        const error = window.ZBBridge ? window.ZBBridge.verifyBenefitVoucher(voucher, value.verifyCode) : '数据桥接未加载';
+        if (error) return ZB.toast(error);
+        ZB.closeModal();
+        ZB.toast('核销成功，已扣减 1 次权益');
+        refresh();
+      }
+    );
+  }
+
+  ZB.pages['benefit-vouchers'] = {
+    group: '基础信息维护',
+    title: '权益核销',
+    render() {
+      const st = ZB.state.benefitVouchers;
+      const kw = st.q.trim().toLowerCase();
+      const all = db().benefitVouchers || [];
+      const tabs = [
+        { key: 'all', label: '全部', count: all.length },
+        { key: 'pending', label: '待核销', count: all.filter((v) => v.status === 'pending').length },
+        { key: 'verified', label: '已核销', count: all.filter((v) => v.status === 'verified').length }
+      ];
+      let rows = all.filter((v) => st.tab === 'all' || v.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (kw) rows = rows.filter((v) => (v.memberName + v.serviceName + v.storeName + v.verifyCode).toLowerCase().indexOf(kw) >= 0);
+      const cols = [
+        {
+          title: '会员 / 核销码',
+          render: (v) => '<div class="td-strong">' + esc(v.memberName) + ' · ' + esc(benefitLevelText(v.memberLevel)) + '</div><div class="cell-sub">' + esc(v.verifyCode) + '</div>'
+        },
+        { title: '权益服务', render: (v) => '<div>' + esc(v.serviceName) + '</div><div class="cell-sub">权益 #' + esc(v.benefitId) + '</div>' },
+        { title: '核销门店', cls: 'td-muted', render: (v) => esc(v.storeName) },
+        { title: '状态', render: (v) => v.status === 'verified' ? pill('已核销', 'pill-green') : pill('待核销', 'pill-orange') },
+        {
+          title: '生成 / 核销时间',
+          cls: 'td-muted td-nowrap',
+          render: (v) => '<div>' + ZB.fmtTime(v.createdAt) + '</div>' + (v.verifiedAt ? '<div class="cell-sub">核销 ' + ZB.fmtTime(v.verifiedAt) + '</div>' : '')
+        },
+        {
+          title: '操作',
+          cls: 'td-nowrap',
+          render: (v) => v.status === 'pending'
+            ? '<span class="link-btn" data-act="bvverify" data-id="' + v.id + '">核销</span>'
+            : '<span class="td-muted">已完成</span>'
+        }
+      ];
+      return (
+        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) +
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索会员 / 服务 / 门店 / 核销码') + '<button class="btn btn-primary" data-act="bvmanual">手动核销</button></div></div>' +
+        '<div class="cell-sub" style="margin-bottom:16px">会员到店完成服务后核销凭证。核销成功扣减一次权益，生成凭证时不扣次数。</div>' +
+        table(cols, rows, '暂无权益凭证，请先在小程序选择门店生成凭证') +
+        '<div class="table-foot"><span>共 ' + all.length + ' 张凭证</span><span>待核销 ' + all.filter((v) => v.status === 'pending').length + ' 张</span></div></div>'
+      );
+    },
+    after() {
+      const st = ZB.state.benefitVouchers;
+      document.querySelectorAll('[data-tab]').forEach((el) => {
+        el.onclick = () => { st.tab = el.dataset.tab; refresh(); };
+      });
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
+      document.querySelectorAll('[data-act="bvverify"]').forEach((el) => {
+        el.onclick = () => {
+          const voucher = (db().benefitVouchers || []).find((v) => String(v.id) === String(el.dataset.id));
+          if (voucher) openBenefitVerify(voucher);
+        };
+      });
+      document.querySelector('[data-act="bvmanual"]').onclick = () => {
+        ZB.formModal(
+          '手动输入核销码',
+          [{ key: 'verifyCode', label: '核销码', required: true, full: true, placeholder: '输入完整的会员权益核销码' }],
+          { verifyCode: '' },
+          (value) => {
+            if (window.ZBBridge) window.ZBBridge.pullBenefitVouchers();
+            const code = String(value.verifyCode || '').replace(/\s/g, '');
+            const voucher = (db().benefitVouchers || []).find((v) => String(v.verifyCode) === code);
+            if (!voucher) return ZB.toast('未找到该核销码对应的权益凭证');
+            const error = window.ZBBridge ? window.ZBBridge.verifyBenefitVoucher(voucher, code) : '数据桥接未加载';
+            if (error) return ZB.toast(error);
+            ZB.closeModal();
+            ZB.toast('核销成功，已扣减 1 次权益');
+            refresh();
+          }
+        );
+      };
+    }
+  };
 })();

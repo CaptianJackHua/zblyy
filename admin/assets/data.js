@@ -271,6 +271,19 @@
     }
   ];
 
+  /* 会员服务权益：一项权益绑定一项服务和多家适用门店 */
+  const memberBenefits = [
+    { id: 1, level: 'normal', serviceId: 4, storeIds: [1, 2], totalTimes: 1, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 1 次拔罐祛湿服务，请提前到店并出示核销码。', status: 'on' },
+    { id: 2, level: 'silver', serviceId: 3, storeIds: [1, 2, 3], totalTimes: 3, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 3 次艾灸温养服务，服务完成后由门店核销。', status: 'on' },
+    { id: 3, level: 'silver', serviceId: 2, storeIds: [1, 2], totalTimes: 2, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 2 次推拿按摩服务，适用于指定门店。', status: 'on' },
+    { id: 4, level: 'gold', serviceId: 1, storeIds: [1, 2, 3], totalTimes: 6, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 6 次针灸调理服务，请携带会员核销码到店。', status: 'on' },
+    { id: 5, level: 'gold', serviceId: 5, storeIds: [1, 3], totalTimes: 3, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 3 次中药熏蒸服务，核销后不可重复使用。', status: 'on' },
+    { id: 6, level: 'diamond', serviceId: 2, storeIds: [1, 2, 3], totalTimes: 12, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 12 次推拿按摩服务，覆盖全部营业门店。', status: 'on' },
+    { id: 7, level: 'diamond', serviceId: 1, storeIds: [1, 2, 3], totalTimes: 6, startDate: '2026-01-01', endDate: '2027-12-31', description: '每年可享 6 次针灸调理服务，由健康顾问协助安排。', status: 'on' }
+  ];
+
+  const benefitVouchers = [];
+
   window.ZBSeed = {
     products: products,
     orders: orders,
@@ -285,6 +298,8 @@
     travel: travel,
     articles: articles,
     services: services,
+    memberBenefits: memberBenefits,
+    benefitVouchers: benefitVouchers,
     serviceOrders: serviceOrders,
     experienceOrders: [],
     appointments: appointments,

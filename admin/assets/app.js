@@ -13,6 +13,8 @@
         { key: 'articles', label: '文章管理', icon: 'article' },
         { key: 'messages', label: '消息中心', icon: 'message' },
         { key: 'members', label: '用户管理', icon: 'member' },
+        { key: 'member-benefits', label: '权益配置', icon: 'gift' },
+        { key: 'benefit-vouchers', label: '权益核销', icon: 'coupon' },
         { key: 'settings', label: '系统管理', icon: 'setting' }
       ]
     },
@@ -96,6 +98,7 @@
       window.ZBBridge.pullAppointments();
     }
     if (key === 'experience-orders' && window.ZBBridge) window.ZBBridge.pullExperienceOrders();
+    if (key === 'benefit-vouchers' && window.ZBBridge) window.ZBBridge.pullBenefitVouchers();
     document.getElementById('crumb-group').textContent = page.group;
     document.getElementById('crumb-page').textContent = page.title;
     renderNav();
@@ -169,6 +172,7 @@
     window.ZBBridge.publishServices();
     window.ZBBridge.publishStores();
     window.ZBBridge.publishExperts();
+    window.ZBBridge.publishBenefits();
   }
   ZB.setRefresh(() => renderPage(current));
 

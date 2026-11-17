@@ -14,6 +14,9 @@ window.ZBBridge = (function () {
   const SERVICE_ORDER_STATUS_KEY = 'zb-shop-service-orders-status'; // 后台写回的服务订单状态
   const STORE_ORDER_STATUS_KEY = 'zb-shop-store-orders-status'; // 后台写回的预约状态
   const EXPERIENCE_KEY = 'zb-experience-orders'; // 养生体验与康养旅居订单
+  const BENEFIT_KEY = 'zb-member-benefits'; // 后台发布的会员服务权益
+  const BENEFIT_VOUCHER_KEY = 'zb-member-benefit-vouchers'; // 小程序生成的权益凭证
+  const BENEFIT_VOUCHER_STATUS_KEY = 'zb-member-benefit-voucher-status'; // 后台回写的核销状态
 
   const read = (k, f) => {
     try {
@@ -468,6 +471,138 @@ window.ZBBridge = (function () {
     return '';
   }
 
+  /* ---------------- 会员权益与到店核销 ---------------- */
+
+  function normalizeMemberLevel(level) {
+    const map = { 普通: 'normal', 银卡: 'silver', 白银: 'silver', 金卡: 'gold', 黄金: 'gold', 钻石: 'diamond', 钻石卡: 'diamond' };
+    return map[level] || level || 'normal';
+  }
+
+  function todayText() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function publishBenefits() {
+    const rows = (ZB.db.memberBenefits || [])
+      .filter((b) => b.status === 'on')
+      .map((b) => {
+        const service = (ZB.db.services || []).find((s) => String(s.id) === String(b.serviceId));
+        return {
+          id: b.id,
+          level: normalizeMemberLevel(b.level),
+          serviceId: b.serviceId,
+          serviceName: service ? service.name : '',
+          storeIds: (b.storeIds || []).slice(),
+          totalTimes: Number(b.totalTimes) || 0,
+          startDate: b.startDate,
+          endDate: b.endDate,
+          description: b.description || ''
+        };
+      });
+    write(BENEFIT_KEY, rows);
+  }
+
+  function benefitUsedCount(memberId, benefitId) {
+    return (ZB.db.benefitVouchers || []).filter(
+      (v) => v.status === 'verified' && String(v.memberId) === String(memberId) && String(v.benefitId) === String(benefitId)
+    ).length;
+  }
+
+  function pullBenefitVouchers() {
+    ZB.db.benefitVouchers = ZB.db.benefitVouchers || [];
+    const list = read(BENEFIT_VOUCHER_KEY, []);
+    if (!Array.isArray(list) || !list.length) return 0;
+    let added = 0;
+    let changed = false;
+    list.forEach((v) => {
+      if (!v || !v.verifyCode || !v.benefitId) return;
+      const code = String(v.verifyCode);
+      const existing = ZB.db.benefitVouchers.find(
+        (x) => String(x.id) === String(v.id) || String(x.verifyCode) === code
+      );
+      if (existing && existing.status === 'verified') return;
+      const row = {
+        id: existing ? existing.id : v.id || 'bv-' + Date.now() + '-' + added,
+        memberId: v.memberId,
+        memberName: v.memberName || '微信用户',
+        memberLevel: normalizeMemberLevel(v.memberLevel),
+        benefitId: v.benefitId,
+        serviceId: v.serviceId,
+        serviceName: v.serviceName || '',
+        storeId: v.storeId,
+        storeName: v.storeName || '',
+        verifyCode: code,
+        status: 'pending',
+        createdAt: v.createdAt || Date.now(),
+        verifiedAt: null,
+        verifiedBy: ''
+      };
+      if (existing) {
+        Object.assign(existing, row);
+        changed = true;
+      } else {
+        ZB.db.benefitVouchers.unshift(row);
+        added++;
+        changed = true;
+      }
+    });
+    if (changed) ZB.save();
+    return added;
+  }
+
+  function publishBenefitVoucherStatus(v) {
+    const map = read(BENEFIT_VOUCHER_STATUS_KEY, {});
+    map[String(v.verifyCode)] = {
+      id: v.id,
+      status: v.status,
+      verifiedAt: v.verifiedAt || null,
+      verifiedBy: v.verifiedBy || '管理员'
+    };
+    write(BENEFIT_VOUCHER_STATUS_KEY, map);
+  }
+
+  /* 返回空字符串表示核销成功，否则返回失败原因 */
+  function verifyBenefitVoucher(v, code) {
+    if (!v) return '权益凭证不存在';
+    if (v.status === 'verified') return '该凭证已核销，请勿重复操作';
+    if (v.status !== 'pending') return '当前凭证不可核销';
+    const input = String(code || '').replace(/\s/g, '');
+    if (!input || input !== String(v.verifyCode)) return '核销码不正确，请与会员核对';
+
+    const benefit = (ZB.db.memberBenefits || []).find((b) => String(b.id) === String(v.benefitId));
+    if (!benefit) return '权益配置不存在';
+    if (benefit.status !== 'on') return '该权益已停用，不能核销';
+    const today = todayText();
+    if (benefit.startDate && today < benefit.startDate) return '该权益尚未生效';
+    if (benefit.endDate && today > benefit.endDate) return '该权益已过期，不能核销';
+
+    const member = (ZB.db.members || []).find((m) => String(m.id) === String(v.memberId));
+    if (!member || member.status !== 'on') return '会员不存在或已停用';
+    if (normalizeMemberLevel(member.level) !== normalizeMemberLevel(benefit.level)) return '会员当前等级与该权益不符';
+
+    const service = (ZB.db.services || []).find((s) => String(s.id) === String(benefit.serviceId));
+    if (!service || service.status !== 'on') return '权益服务不存在或已下架';
+    if (String(v.serviceId) !== String(service.id)) return '凭证服务与当前权益配置不一致';
+
+    const store = (ZB.db.stores || []).find((s) => String(s.id) === String(v.storeId));
+    if (!store || store.status !== 'on') return '所选门店不存在或已停业';
+    if (!(benefit.storeIds || []).some((id) => String(id) === String(store.id))) return '该门店已不在权益适用范围内';
+    if ((service.storeIds || []).length && !(service.storeIds || []).some((id) => String(id) === String(store.id))) {
+      return '该门店已不再提供此项服务';
+    }
+
+    if (benefitUsedCount(member.id, benefit.id) >= Number(benefit.totalTimes)) return '该会员的权益次数已用完';
+    v.status = 'verified';
+    v.verifiedAt = Date.now();
+    v.verifiedBy = '管理员';
+    v.memberLevel = normalizeMemberLevel(member.level);
+    ZB.save();
+    publishBenefitVoucherStatus(v);
+    return '';
+  }
+
   return {
     ORDER_KEY: ORDER_KEY,
     SHIP_KEY: SHIP_KEY,
@@ -483,6 +618,9 @@ window.ZBBridge = (function () {
     SERVICE_ORDER_STATUS_KEY: SERVICE_ORDER_STATUS_KEY,
     STORE_ORDER_STATUS_KEY: STORE_ORDER_STATUS_KEY,
     EXPERIENCE_KEY: EXPERIENCE_KEY,
+    BENEFIT_KEY: BENEFIT_KEY,
+    BENEFIT_VOUCHER_KEY: BENEFIT_VOUCHER_KEY,
+    BENEFIT_VOUCHER_STATUS_KEY: BENEFIT_VOUCHER_STATUS_KEY,
     publishProducts: publishProducts,
     publishArticles: publishArticles,
     publishServices: publishServices,
@@ -506,6 +644,11 @@ window.ZBBridge = (function () {
     publishServiceOrderStatus: publishServiceOrderStatus,
     publishAppointmentStatus: publishAppointmentStatus,
     publishExperienceOrderStatus: publishExperienceOrderStatus,
-    verifyExperienceOrder: verifyExperienceOrder
+    verifyExperienceOrder: verifyExperienceOrder,
+    publishBenefits: publishBenefits,
+    pullBenefitVouchers: pullBenefitVouchers,
+    publishBenefitVoucherStatus: publishBenefitVoucherStatus,
+    verifyBenefitVoucher: verifyBenefitVoucher,
+    benefitUsedCount: benefitUsedCount
   };
 })();
