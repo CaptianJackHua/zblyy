@@ -299,6 +299,7 @@ window.ZBBridge = (function () {
         duration: s.duration,
         desc: s.desc || '',
         icon: s.icon || 'sparkles',
+        status: s.status,
         storeIds: s.storeIds || []
       }));
     write(SERVICE_KEY, rows);

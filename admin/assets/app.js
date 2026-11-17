@@ -194,6 +194,16 @@
     renderPage(readHash());
   });
 
+  function syncBenefitVouchers() {
+    if (!logged || current !== 'benefit-vouchers' || !window.ZBBridge) return;
+    window.ZBBridge.pullBenefitVouchers();
+    renderPage(current);
+  }
+  window.addEventListener('focus', syncBenefitVouchers);
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'zb-member-benefit-vouchers') syncBenefitVouchers();
+  });
+
   if (logged) showApp();
   else showLogin();
 })();
