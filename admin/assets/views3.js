@@ -472,4 +472,95 @@
       });
     }
   };
+
+  /* ================= 养生体验 / 康养旅居核销 ================= */
+  ZB.state.experienceOrders = { tab: 'all', q: '' };
+
+  ZB.pages['experience-orders'] = {
+    group: '专家系统',
+    title: '体验核销',
+    render() {
+      const st = ZB.state.experienceOrders;
+      const kw = st.q.trim().toLowerCase();
+      const all = db().experienceOrders || [];
+      const tabs = [
+        { key: 'all', label: '全部', count: all.length },
+        { key: 'paid', label: '待核销', count: all.filter((o) => o.status === 'paid').length },
+        { key: 'verified', label: '已核销', count: all.filter((o) => o.status === 'verified').length }
+      ];
+      let rows = all.filter((o) => st.tab === 'all' || o.status === st.tab).slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (kw) rows = rows.filter((o) => (o.no + o.title + o.contactName + o.contactPhone + o.verifyCode).toLowerCase().indexOf(kw) >= 0);
+      const cols = [
+        {
+          title: '体验订单',
+          render: (o) => '<div class="td-strong">' + esc(o.no) + '</div><div class="cell-sub">' + esc(o.contactName) + '　' + esc(o.contactPhone) + '</div>'
+        },
+        {
+          title: '项目',
+          render: (o) => '<div>' + esc(o.title) + '</div><div class="cell-sub">' + (o.kind === 'travel' ? '康养旅居' : '养生体验') + ' · ' + num(o.qty) + ' 份</div>'
+        },
+        { title: '服务日期', cls: 'td-muted td-nowrap', render: (o) => esc(o.serviceDate || '到店核销') },
+        { title: '实付金额', cls: 'td-money', render: (o) => money(o.total) },
+        { title: '核销码', render: (o) => '<span class="td-strong">' + esc(o.verifyCode) + '</span>' },
+        {
+          title: '状态',
+          render: (o) => o.status === 'verified' ? pill('已核销', 'pill-green') : pill('待核销', 'pill-orange')
+        },
+        {
+          title: '下单 / 核销时间',
+          cls: 'td-muted td-nowrap',
+          render: (o) => '<div>' + ZB.fmtTime(o.createdAt) + '</div>' + (o.verifiedAt ? '<div class="cell-sub">核销 ' + ZB.fmtTime(o.verifiedAt) + '</div>' : '')
+        },
+        {
+          title: '操作',
+          cls: 'td-nowrap',
+          render: (o) => o.status === 'paid'
+            ? '<span class="link-btn" data-act="expverify" data-id="' + o.id + '">核销</span>'
+            : '<span class="td-muted">已完成</span>'
+        }
+      ];
+      return (
+        '<div class="card"><div class="table-toolbar">' + ZB.tabs(tabs, st.tab) +
+        '<div class="toolbar-right">' + ZB.searchBox(st.q, '搜索订单号 / 项目 / 联系人 / 核销码') + '</div></div>' +
+        '<div class="cell-sub" style="margin-bottom:16px">顾客出示二维码后，点击对应订单的「核销」，扫描或输入核销码完成验证。</div>' +
+        table(cols, rows, '暂无体验订单，请先在小程序购买养生体验或康养旅居服务') +
+        '<div class="table-foot"><span>共 ' + all.length + ' 单</span><span>待核销 ' + all.filter((o) => o.status === 'paid').length + ' 单</span></div></div>'
+      );
+    },
+    after() {
+      const st = ZB.state.experienceOrders;
+      document.querySelectorAll('[data-tab]').forEach((el) => {
+        el.onclick = () => { st.tab = el.dataset.tab; refresh(); };
+      });
+      const s = document.querySelector('#page-search');
+      if (s) s.oninput = () => {
+        st.q = s.value;
+        const pos = s.selectionStart;
+        refresh();
+        const ns = document.querySelector('#page-search');
+        if (ns) { ns.focus(); ns.setSelectionRange(pos, pos); }
+      };
+      document.querySelectorAll('[data-act="expverify"]').forEach((el) => {
+        el.onclick = () => {
+          const order = (db().experienceOrders || []).find((o) => o.id === el.dataset.id);
+          if (!order) return;
+          ZB.formModal(
+            '体验订单核销',
+            [{ key: 'verifyCode', label: '核销码', required: true, full: true, placeholder: '扫描或输入顾客出示的核销码' }],
+            { verifyCode: '' },
+            (v) => {
+              const error = window.ZBBridge ? window.ZBBridge.verifyExperienceOrder(order, v.verifyCode) : '数据桥接未加载';
+              if (error) {
+                ZB.toast(error);
+                return;
+              }
+              ZB.closeModal();
+              ZB.toast('核销成功，顾客端状态已同步');
+              refresh();
+            }
+          );
+        };
+      });
+    }
+  };
 })();

@@ -13,6 +13,7 @@ window.ZBBridge = (function () {
   const STORE_ORDER_KEY = 'zb-shop-store-orders'; // 小程序写入的到店预约单
   const SERVICE_ORDER_STATUS_KEY = 'zb-shop-service-orders-status'; // 后台写回的服务订单状态
   const STORE_ORDER_STATUS_KEY = 'zb-shop-store-orders-status'; // 后台写回的预约状态
+  const EXPERIENCE_KEY = 'zb-experience-orders'; // 养生体验与康养旅居订单
 
   const read = (k, f) => {
     try {
@@ -411,6 +412,62 @@ window.ZBBridge = (function () {
     write(STORE_ORDER_STATUS_KEY, map);
   }
 
+  /* 拉取养生体验与康养旅居订单 */
+  function pullExperienceOrders() {
+    ZB.db.experienceOrders = ZB.db.experienceOrders || [];
+    const list = read(EXPERIENCE_KEY, []);
+    if (!Array.isArray(list) || !list.length) return 0;
+    let added = 0;
+    list.forEach((o) => {
+      if (!o || !o.no || ZB.db.experienceOrders.some((x) => x.no === o.no)) return;
+      ZB.db.experienceOrders.unshift({
+        id: o.id || 'ex-' + Date.now(),
+        no: o.no,
+        kind: o.kind === 'travel' ? 'travel' : 'preserve',
+        title: o.title || '',
+        location: o.location || '',
+        price: o.price || 0,
+        qty: o.qty || 1,
+        total: o.total || 0,
+        serviceDate: o.serviceDate || '',
+        contactName: o.contactName || '微信用户',
+        contactPhone: o.contactPhone || '',
+        status: o.status === 'verified' ? 'verified' : 'paid',
+        verifyCode: String(o.verifyCode || ''),
+        createdAt: o.createdAt || Date.now(),
+        verifiedAt: o.verifiedAt || null,
+        source: 'mini'
+      });
+      added++;
+    });
+    if (added) ZB.save();
+    return added;
+  }
+
+  function publishExperienceOrderStatus(o) {
+    const list = read(EXPERIENCE_KEY, []);
+    if (!Array.isArray(list)) return;
+    const target = list.find((x) => x && x.no === o.no);
+    if (!target) return;
+    target.status = o.status;
+    target.verifiedAt = o.verifiedAt || Date.now();
+    write(EXPERIENCE_KEY, list);
+  }
+
+  /* 返回空字符串表示核销成功，否则返回失败原因 */
+  function verifyExperienceOrder(o, code) {
+    if (!o) return '订单不存在';
+    if (o.status === 'verified') return '该订单已核销，请勿重复操作';
+    if (o.status !== 'paid') return '仅已支付订单可核销';
+    const input = String(code || '').replace(/\s/g, '');
+    if (!input || input !== String(o.verifyCode)) return '核销码不正确，请与顾客核对';
+    o.status = 'verified';
+    o.verifiedAt = Date.now();
+    ZB.save();
+    publishExperienceOrderStatus(o);
+    return '';
+  }
+
   return {
     ORDER_KEY: ORDER_KEY,
     SHIP_KEY: SHIP_KEY,
@@ -425,6 +482,7 @@ window.ZBBridge = (function () {
     STORE_ORDER_KEY: STORE_ORDER_KEY,
     SERVICE_ORDER_STATUS_KEY: SERVICE_ORDER_STATUS_KEY,
     STORE_ORDER_STATUS_KEY: STORE_ORDER_STATUS_KEY,
+    EXPERIENCE_KEY: EXPERIENCE_KEY,
     publishProducts: publishProducts,
     publishArticles: publishArticles,
     publishServices: publishServices,
@@ -444,7 +502,10 @@ window.ZBBridge = (function () {
     pendingAftersaleCount: pendingAftersaleCount,
     pullServiceOrders: pullServiceOrders,
     pullAppointments: pullAppointments,
+    pullExperienceOrders: pullExperienceOrders,
     publishServiceOrderStatus: publishServiceOrderStatus,
-    publishAppointmentStatus: publishAppointmentStatus
+    publishAppointmentStatus: publishAppointmentStatus,
+    publishExperienceOrderStatus: publishExperienceOrderStatus,
+    verifyExperienceOrder: verifyExperienceOrder
   };
 })();

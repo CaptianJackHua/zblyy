@@ -76,11 +76,11 @@
   ];
 
   const coupons = [
-    { id: 1, title: '新客首单券', amount: 20, threshold: 199, scope: '商城通用', total: 5000, claimed: 3280, used: 1960, start: '2026-10-01', end: '2026-11-30', status: 'on' },
-    { id: 2, title: '智能穿戴专享券', amount: 30, threshold: 299, scope: '智能穿戴品类', total: 2000, claimed: 1420, used: 830, start: '2026-10-15', end: '2026-11-15', status: 'on' },
-    { id: 3, title: '养生保健满减券', amount: 60, threshold: 599, scope: '养生保健品类', total: 1500, claimed: 960, used: 412, start: '2026-10-20', end: '2026-11-20', status: 'on' },
-    { id: 4, title: '会员回馈券', amount: 15, threshold: 99, scope: '商城通用', total: 8000, claimed: 7310, used: 6890, start: '2026-08-01', end: '2026-09-30', status: 'off' },
-    { id: 5, title: '双十一预热券', amount: 40, threshold: 399, scope: '商城通用', total: 10000, claimed: 8260, used: 4020, start: '2026-10-25', end: '2026-11-11', status: 'on' }
+    { id: 1, title: '新客首单券', amount: 20, threshold: 199, scope: '商城通用', useCondition: '仅限首次下单使用，每笔订单限用 1 张', total: 5000, claimed: 3280, used: 1960, start: '2026-10-01', end: '2026-11-30', status: 'on' },
+    { id: 2, title: '智能穿戴专享券', amount: 30, threshold: 299, scope: '智能穿戴品类', useCondition: '仅限智能穿戴商品，不与其他优惠同享', total: 2000, claimed: 1420, used: 830, start: '2026-10-15', end: '2026-11-15', status: 'on' },
+    { id: 3, title: '养生保健满减券', amount: 60, threshold: 599, scope: '养生保健品类', useCondition: '仅限养生保健商品，每笔订单限用 1 张', total: 1500, claimed: 960, used: 412, start: '2026-10-20', end: '2026-11-20', status: 'on' },
+    { id: 4, title: '会员回馈券', amount: 15, threshold: 99, scope: '商城通用', useCondition: '会员每人限用 1 张，不可兑换现金', total: 8000, claimed: 7310, used: 6890, start: '2026-08-01', end: '2026-09-30', status: 'off' },
+    { id: 5, title: '双十一预热券', amount: 40, threshold: 399, scope: '商城通用', useCondition: '活动商品可用，不与其他优惠同享', total: 10000, claimed: 8260, used: 4020, start: '2026-10-25', end: '2026-11-11', status: 'on' }
   ];
 
   const gifts = [
@@ -163,7 +163,7 @@
   ];
 
   const messages = [
-    { id: 1, title: '双十一健康狂欢开启', type: '活动通知', content: '全场满 399 减 40，会员再享 95 折，活动截止 11 月 11 日。', target: '全部会员', status: '已发送', createdAt: daysAgo(1, 2) },
+    { id: 1, title: '双十一健康狂欢开启', type: '活动通知', content: '全场满 399 减 40，优惠券限量领取，活动截止 11 月 11 日。', target: '全部会员', status: '已发送', createdAt: daysAgo(1, 2) },
     { id: 2, title: '秋季养生指南已更新', type: '健康资讯', content: '秋季润燥、护肺、早睡晚起，点击查看完整养生建议。', target: '全部会员', status: '已发送', createdAt: daysAgo(2, 6) },
     { id: 3, title: '您的订单已发货', type: '订单通知', content: '订单 ZB3266465385 已由顺丰发出，请注意查收。', target: '指定会员', status: '已发送', createdAt: daysAgo(3, 4) },
     { id: 4, title: '会员权益升级公告', type: '系统通知', content: '钻石会员新增免费体检 1 次与专属健康管家服务。', target: '金卡及以上', status: '草稿', createdAt: daysAgo(4, 3) },
@@ -286,6 +286,7 @@
     articles: articles,
     services: services,
     serviceOrders: serviceOrders,
+    experienceOrders: [],
     appointments: appointments,
     messages: messages,
     tasks: tasks,

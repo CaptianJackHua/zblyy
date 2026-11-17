@@ -356,6 +356,7 @@
     { key: 'amount', label: '面额（元）', type: 'number', required: true, min: 1 },
     { key: 'threshold', label: '使用门槛（元）', type: 'number', required: true, min: 0 },
     { key: 'scope', label: '适用范围', full: true, placeholder: '如：商城通用 / 智能穿戴品类' },
+    { key: 'useCondition', label: '使用条件', required: true, full: true, placeholder: '如：每笔订单限用 1 张，不与其他优惠同享' },
     { key: 'total', label: '发放总量', type: 'number', required: true, min: 1 },
     { key: 'status', label: '状态', type: 'select', options: [{ value: 'on', label: '启用' }, { value: 'off', label: '停用' }] },
     { key: 'start', label: '开始日期', type: 'date', required: true },
@@ -365,7 +366,7 @@
   function editCoupon(id) {
     const isNew = !id;
     const item = isNew
-      ? { title: '', amount: 20, threshold: 199, scope: '商城通用', total: 1000, status: 'on', start: ZB.fmtDate(Date.now()), end: ZB.fmtDate(Date.now() + 30 * 86400000) }
+      ? { title: '', amount: 20, threshold: 199, scope: '商城通用', useCondition: '每笔订单限用 1 张，不与其他优惠同享', total: 1000, status: 'on', start: ZB.fmtDate(Date.now()), end: ZB.fmtDate(Date.now() + 30 * 86400000) }
       : db().coupons.find((c) => c.id === id);
     ZB.formModal(isNew ? '新建优惠券' : '编辑优惠券', couponFields, item, (v) => {
       if (isNew) {
@@ -390,7 +391,7 @@
           title: '优惠券',
           render: (c) =>
             '<div class="cell-flex">' + ZB.thumb('#2ec4b6', '券') +
-            '<div><div class="cell-name">' + esc(c.title) + '</div><div class="cell-sub">' + esc(c.scope) + '</div></div></div>'
+            '<div><div class="cell-name">' + esc(c.title) + '</div><div class="cell-sub">' + esc(c.scope) + '</div><div class="cell-sub">使用条件：' + esc(c.useCondition || '每笔订单限用 1 张，不与其他优惠同享') + '</div></div></div>'
         },
         { title: '面额', cls: 'td-money', render: (c) => money(c.amount) },
         { title: '门槛', render: (c) => '满 ' + money(c.threshold) + ' 可用' },

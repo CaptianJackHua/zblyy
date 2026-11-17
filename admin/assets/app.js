@@ -33,6 +33,7 @@
         { key: 'services', label: '服务管理', icon: 'service' },
         { key: 'experts', label: '专家管理', icon: 'expert' },
         { key: 'service-orders', label: '服务订单', icon: 'order' },
+        { key: 'experience-orders', label: '体验核销', icon: 'coupon' },
         { key: 'appointments', label: '预约系统', icon: 'calendar' },
         { key: 'stores', label: '门店管理', icon: 'store' },
         { key: 'travel', label: '康养旅居', icon: 'travel' }
@@ -94,6 +95,7 @@
       window.ZBBridge.pullServiceOrders();
       window.ZBBridge.pullAppointments();
     }
+    if (key === 'experience-orders' && window.ZBBridge) window.ZBBridge.pullExperienceOrders();
     document.getElementById('crumb-group').textContent = page.group;
     document.getElementById('crumb-page').textContent = page.title;
     renderNav();
